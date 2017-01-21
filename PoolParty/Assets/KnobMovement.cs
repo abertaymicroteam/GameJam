@@ -7,44 +7,68 @@ public class KnobMovement : MonoBehaviour {
 	private GameObject dude;
 	public Camera camera;
 	public Splash splash;
+	private GameManager gMan;
 
 	private float force;
+	private float lastAngle;
 
 	// Use this for initialization
 	void Start () 
 	{
 		rigBody = gameObject.GetComponent<Rigidbody2D> ();
 		dude = GameObject.FindGameObjectWithTag ("Player");
+		gMan = GameObject.FindObjectOfType<GameManager> ();
 
 		force = 3.0f;
+		lastAngle = 0.0f;
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
-		if (Input.GetMouseButtonDown(0)) 
-		{
-			Vector3 mousePos = Input.mousePosition;
-			Vector3 playerPos = camera.WorldToScreenPoint(dude.transform.position);
+		if (gMan.angle != lastAngle) 
+		{ // New press
 
-			Vector3 distance = playerPos - mousePos;
+			lastAngle = gMan.angle;
 
-			if ((distance.magnitude < 150.0f) && (distance.magnitude > 30.0f))
-			{
-				Vector3 splashPos = camera.ScreenToWorldPoint(mousePos);
-				splashPos.z = 0;
+			// Get mouse and player pos in world coords
+			Vector2 mousePos = Input.mousePosition;
+			Vector2 playerPos = camera.WorldToScreenPoint(dude.transform.position);
 
-				Instantiate(splash, splashPos, Quaternion.identity);
+			// Get screen centre
+		//	Vector2 centre = new Vector2(Screen.width, Screen.height) / 2;
 
-				if (distance.magnitude > 0) 
-				{
-					float ratio = (150.0f - (distance.magnitude - 30.0f)) / 120.0f;
+			// Offset mouse pos by centre to put (0, 0) at the centre of screen rather than bottom left
+			mousePos -= playerPos; // CHANGE THIS WHEN CONTORLLER
 
-					distance.Normalize();
+			// Find angle between the click and player
+			float angle = Mathf.Atan2(mousePos.x, mousePos.y);
 
-					rigBody.AddForce (distance * (force * ratio), ForceMode2D.Impulse);
-				}
-			}
+			// Find point on circumfrence to spawn splash
+			Vector2 splashPos = CirclePos (playerPos, (1.0f), gMan.angle * Mathf.Deg2Rad);
+
+			// Spawn splash
+			Instantiate(splash, splashPos, Quaternion.identity);
+
+			// Calculate direction to push player
+			playerPos = dude.transform.position;
+			Vector2 direction = playerPos - splashPos;
+			direction.Normalize ();
+
+			// Add force
+			rigBody.AddForce (direction * force, ForceMode2D.Impulse);
 		}
+	}
+
+	Vector2 CirclePos(Vector2 centre, float radius, float angle)
+	{
+		// Return position on circumfrence around player based on input angle
+		Vector2 pos;
+		Vector3 c = camera.ScreenToWorldPoint (new Vector3(centre.x, centre.y, 0));
+
+		pos.x = c.x + radius * Mathf.Sin(angle);
+		pos.y = c.y + radius * Mathf.Cos(angle);
+
+		return pos;
 	}
 }
