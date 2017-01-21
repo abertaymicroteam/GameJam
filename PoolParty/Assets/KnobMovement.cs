@@ -3,7 +3,7 @@ using System.Collections;
 
 public class KnobMovement : MonoBehaviour {
 
-	private Rigidbody rigBody;
+	private Rigidbody2D rigBody;
 	private GameObject dude;
 	public Camera camera;
 	public Splash splash;
@@ -13,7 +13,7 @@ public class KnobMovement : MonoBehaviour {
 	// Use this for initialization
 	void Start () 
 	{
-		rigBody = gameObject.GetComponent<Rigidbody> ();
+		rigBody = gameObject.GetComponent<Rigidbody2D> ();
 		dude = GameObject.FindGameObjectWithTag ("Player");
 
 		force = 3.0f;
@@ -42,7 +42,7 @@ public class KnobMovement : MonoBehaviour {
 
 					distance.Normalize();
 
-					rigBody.AddForce (distance * (force * ratio), ForceMode.Impulse);
+					rigBody.AddForce (distance * (force * ratio), ForceMode2D.Impulse);
 				}
 			}
 		}
