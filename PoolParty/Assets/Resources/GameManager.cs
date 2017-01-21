@@ -7,10 +7,21 @@ using Newtonsoft.Json.Linq;
 
 public class GameManager : MonoBehaviour {
 
-	public Rigidbody2D[] Players;
+	public Vector3 SpawnLocation;
+	public List<GameObject> Players;
+	public GameObject[] Characters;
 	public float angle = 0.0f;
+	public float[] angles;
+	public int[] ID;
+	public int connectedPlayers;
 	public Text uiText;
+	private bool match = false;
 	#if !DISABLE_AIRCONSOLE 
+
+
+	public float getAngle(int ID){
+		return angles [ID];
+	}
 
 	void Awake () {
 		AirConsole.instance.onMessage += OnMessage;
@@ -35,9 +46,34 @@ public class GameManager : MonoBehaviour {
 	void OnConnect (int device_id) {
 		if (AirConsole.instance.GetActivePlayerDeviceIds.Count == 0) 
 		{
-			if (AirConsole.instance.GetControllerDeviceIds ().Count >= 4) 
+			//set spawn
+			SpawnLocation.Set(Random.Range(-6,6),Random.Range(-4,4), 0);
+
+			do 
 			{
-				StartGame ();
+				foreach (GameObject i in Players)
+				{
+					if(SpawnLocation.x <  i.transform.position.x + 1.5 && SpawnLocation.x > i.transform.position.x - 1.5   && SpawnLocation.y < i.transform.position.y + 1.5 && SpawnLocation.y > i.transform.position.y-1.5){
+						SpawnLocation.Set(Random.Range(-6,6),Random.Range(-4,4),0 );
+						match = true;
+					}
+					else{
+						match = false;
+					}
+				}
+			} while(match);
+
+			//create new player
+			GameObject newPlayer = Instantiate(Characters[connectedPlayers], SpawnLocation, Quaternion.identity) as GameObject;
+			newPlayer.GetComponent<KnobMovement> ().SetID (connectedPlayers);
+			ID [connectedPlayers] = device_id;
+			Players.Add(newPlayer);
+			connectedPlayers++;
+
+			if (AirConsole.instance.GetControllerDeviceIds ().Count > 2) 
+			{
+				
+				//StartGame ();
 			} 
 			else 
 			{
@@ -73,25 +109,9 @@ public class GameManager : MonoBehaviour {
 	void OnMessage (int device_id, JToken data) {
 		int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber (device_id);
 		if (active_player != -1) {
-			switch (active_player) {
-				case 0:
-					break;
-				case 1:
-					break;
-				case 2:
-					break;
-				case 3:
-					break;
-				case 4:
-					break;
-				case 5:
-					break;
-				case 6:
-					break;
-				case 7:
-					break;	
-			}
+			
 		}
+
 		angle = (float)data ["move"];
 
 		if (angle > 0) {
@@ -103,6 +123,15 @@ public class GameManager : MonoBehaviour {
 			}
 			angle = 360 - angle;
 		}
+
+		int it = 0;
+		foreach(int i in ID){
+			if(device_id == i){
+				angles [it] = angle;
+			}
+			it ++;
+		}
+
 
 	
 		uiText.text = "TAP: " + angle + " degrees";
@@ -118,13 +147,7 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void FixedUpdate () {
-		
-		// check if ball reached one of the ends
-		foreach(Rigidbody2D player in Players){
-			if (player.position.x < -9f) {
-				//if the player goes off screen
-			}
-		}
+
 
 	}
 
