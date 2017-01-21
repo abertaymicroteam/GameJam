@@ -6,6 +6,7 @@ public class KnobMovement : MonoBehaviour {
 	private Rigidbody rigBody;
 	private GameObject dude;
 	public Camera camera;
+	public GameObject splash;
 
 	// Use this for initialization
 	void Start () 
@@ -23,6 +24,11 @@ public class KnobMovement : MonoBehaviour {
 			Vector3 playerPos = camera.WorldToScreenPoint(dude.transform.position);
 
 			Vector3 distance = playerPos - mousePos;
+
+			Vector3 splashPos = camera.ScreenToWorldPoint(mousePos);
+			splashPos.z = 0;
+
+			Instantiate(splash, splashPos, Quaternion.identity);
 
 			if (distance.magnitude > 0) 
 			{
