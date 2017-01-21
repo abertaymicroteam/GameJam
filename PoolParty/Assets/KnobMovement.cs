@@ -6,7 +6,7 @@ public class KnobMovement : MonoBehaviour {
 	private Rigidbody rigBody;
 	private GameObject dude;
 	public Camera camera;
-	public GameObject splash;
+	public Splash splash;
 
 	private float force;
 
