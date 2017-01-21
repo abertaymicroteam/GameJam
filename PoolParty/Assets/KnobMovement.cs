@@ -8,11 +8,15 @@ public class KnobMovement : MonoBehaviour {
 	public Camera camera;
 	public GameObject splash;
 
+	private float force;
+
 	// Use this for initialization
 	void Start () 
 	{
 		rigBody = gameObject.GetComponent<Rigidbody> ();
 		dude = GameObject.FindGameObjectWithTag ("Player");
+
+		force = 3.0f;
 	}
 	
 	// Update is called once per frame
@@ -25,16 +29,21 @@ public class KnobMovement : MonoBehaviour {
 
 			Vector3 distance = playerPos - mousePos;
 
-			Vector3 splashPos = camera.ScreenToWorldPoint(mousePos);
-			splashPos.z = 0;
-
-			Instantiate(splash, splashPos, Quaternion.identity);
-
-			if (distance.magnitude > 0) 
+			if ((distance.magnitude < 150.0f) && (distance.magnitude > 30.0f))
 			{
-				distance.Normalize();
+				Vector3 splashPos = camera.ScreenToWorldPoint(mousePos);
+				splashPos.z = 0;
 
-				rigBody.AddForce (distance * 2.0f, ForceMode.Impulse);
+				Instantiate(splash, splashPos, Quaternion.identity);
+
+				if (distance.magnitude > 0) 
+				{
+					float ratio = (150.0f - (distance.magnitude - 30.0f)) / 120.0f;
+
+					distance.Normalize();
+
+					rigBody.AddForce (distance * (force * ratio), ForceMode.Impulse);
+				}
 			}
 		}
 	}
