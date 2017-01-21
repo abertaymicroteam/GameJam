@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 C:\Users\Cameron McPherson\Documents\GameJam\PoolParty\obj\Debug\Assembly-CSharp.csprojResolveAssemblyReference.cache
+=======
+E:\GGJ 2017\GitHub\PoolParty\obj\Debug\Assembly-CSharp.csprojResolveAssemblyReference.cache
+>>>>>>> 3dbb3d3bdd3f7d50d3f132043e175d8222135469
