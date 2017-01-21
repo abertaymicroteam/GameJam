@@ -7,11 +7,15 @@ public class KnobMovement : MonoBehaviour {
 	private GameObject dude;
 	public Camera camera;
 
+	private float force;
+
 	// Use this for initialization
 	void Start () 
 	{
 		rigBody = gameObject.GetComponent<Rigidbody> ();
 		dude = GameObject.FindGameObjectWithTag ("Player");
+
+		force = 3.0f;
 	}
 	
 	// Update is called once per frame
@@ -24,11 +28,13 @@ public class KnobMovement : MonoBehaviour {
 
 			Vector3 distance = playerPos - mousePos;
 
-			if (distance.magnitude > 0) 
+			if ((distance.magnitude < 150.0f) && (distance.magnitude > 30.0f))
 			{
+				float ratio = (150.0f - (distance.magnitude - 30.0f)) / 120.0f;
+
 				distance.Normalize();
 
-				rigBody.AddForce (distance * 2.0f, ForceMode.Impulse);
+				rigBody.AddForce (distance * (force * ratio), ForceMode.Impulse);
 			}
 		}
 	}
