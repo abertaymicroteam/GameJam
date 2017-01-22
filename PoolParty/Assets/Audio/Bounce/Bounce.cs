@@ -8,7 +8,7 @@ public class Bounce : MonoBehaviour {
 
 	void Start ()
 	{
-		bounceEffect = bounceSound[Random.Range(0,7)].GetComponent<AudioSource>().clip;
+		bounceEffect = bounceSound[Random.Range(0,3)].GetComponent<AudioSource>().clip;
 		gameObject.GetComponent<AudioSource>().clip = bounceEffect;
 
 		gameObject.GetComponent<AudioSource>().Play();

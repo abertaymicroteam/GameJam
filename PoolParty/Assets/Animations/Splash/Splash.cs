@@ -8,10 +8,10 @@ public class Splash : MonoBehaviour {
 
 	void Start ()
 	{
-		soundEffect = waterSound[Random.Range(0,3)].GetComponent<AudioSource>().clip;
+		/*soundEffect = waterSound[Random.Range(0,3)].GetComponent<AudioSource>().clip;
 		gameObject.GetComponent<AudioSource>().clip = soundEffect;
 
-		gameObject.GetComponent<AudioSource>().Play();
+		gameObject.GetComponent<AudioSource>().Play();*/
 	}
 	
 	void Update ()

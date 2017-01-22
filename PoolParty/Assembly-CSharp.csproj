@@ -207,6 +207,7 @@
      <Compile Include="Assets\AirConsole\scripts\WebsocketListener.cs" />
      <Compile Include="Assets\Animations\Splash\Splash.cs" />
      <Compile Include="Assets\Audio\Bounce\Bounce.cs" />
+     <Compile Include="Assets\Audio\Characters\Character.cs" />
      <Compile Include="Assets\KnobMovement.cs" />
      <Compile Include="Assets\Resources\GameManager.cs" />
      <None Include="Assets\AirConsole\README.txt" />

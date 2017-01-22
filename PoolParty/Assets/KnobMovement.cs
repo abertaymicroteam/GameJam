@@ -6,7 +6,7 @@ public class KnobMovement : MonoBehaviour {
 	private Rigidbody2D rigBody;
 	private GameObject dude;
 	public Camera camera;
-	//public Splash splash;
+	public Splash splash;
 	public Bounce bounce;
 	public int playerID;
 	private GameManager gMan;
@@ -44,7 +44,7 @@ public class KnobMovement : MonoBehaviour {
 			Vector2 splashPos = CirclePos (playerPos, (1.0f), gMan.getAngle(playerID)* Mathf.Deg2Rad);
 
 			// Spawn splash
-			//Instantiate(splash, splashPos, Quaternion.identity);
+			Instantiate(splash, splashPos, Quaternion.identity);
 
 			// Calculate direction to push player
 			Vector2 direction = playerPos - splashPos;
@@ -73,6 +73,6 @@ public class KnobMovement : MonoBehaviour {
 	}
 	void OnCollisionEnter2D (Collision2D collision)
 	{
-		Instantiate(bounce);
+			Instantiate(bounce);
 	}
 }
