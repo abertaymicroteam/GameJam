@@ -3,16 +3,19 @@ using System.Collections;
 
 public class Splash : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () 
+	public GameObject[] waterSound;
+	private AudioClip soundEffect;
+
+	void Start ()
 	{
-		
+		soundEffect = waterSound[Random.Range(0,3)].GetComponent<AudioSource>().clip;
+		gameObject.GetComponent<AudioSource>().clip = soundEffect;
+
+		gameObject.GetComponent<AudioSource>().Play();
 	}
 	
-	// Update is called once per frame
-	void Update () 
+	void Update ()
 	{
-		
-		Destroy (this.gameObject, 1f);	
+		Destroy (this.gameObject, 2f);	
 	}
 }
