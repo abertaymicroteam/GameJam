@@ -56,7 +56,7 @@ public class KnobMovement : MonoBehaviour {
 	// Update is called once per frame
 	void FixedUpdate () 
 	{
-		if ((gMan.getAngle (playerID) != lastAngle) && (gMan.gameStarted == true) && (!destroyMe))
+		if ((gMan.getAngle (playerID) != lastAngle) && (gMan.GameState == GameManager.STATE.GAME) && (!destroyMe))
 		{ // New touch press
 
 			lastAngle = gMan.getAngle (playerID);

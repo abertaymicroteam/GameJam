@@ -201,10 +201,11 @@
      <Compile Include="Assets\AirConsole\scripts\DebugLevel.cs" />
      <Compile Include="Assets\AirConsole\scripts\Settings.cs" />
      <Compile Include="Assets\AirConsole\scripts\WebsocketListener.cs" />
-     <Compile Include="Assets\Animations\Splash\Splash.cs" />
-     <Compile Include="Assets\Scripts\GameManager.cs" />
-     <Compile Include="Assets\Scripts\KnobMovement.cs" />
-     <Compile Include="Assets\Scripts\PersonScript.cs" />
+     <Compile Include="Assets\MenuScript.cs" />
+     <Compile Include="Assets\Resources\Animations\Splash\Splash.cs" />
+     <Compile Include="Assets\Resources\Scripts\GameManager.cs" />
+     <Compile Include="Assets\Resources\Scripts\KnobMovement.cs" />
+     <Compile Include="Assets\Resources\Scripts\PersonScript.cs" />
      <None Include="Assets\AirConsole\README.txt" />
      <None Include="Assets\Plugins\Android\AndroidManifest.xml" />
  <Reference Include="UnityEngine.UI">
