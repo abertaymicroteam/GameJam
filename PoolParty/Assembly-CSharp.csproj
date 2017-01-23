@@ -45,10 +45,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\AirConsole\examples\basic\ExampleBasicLogic.cs" />
-     <Compile Include="Assets\AirConsole\examples\pong\ExamplePongLogic.cs" />
-     <Compile Include="Assets\AirConsole\examples\pong\scripts\Racket.cs" />
-     <Compile Include="Assets\AirConsole\extras\HighScoreHelper.cs" />
      <Compile Include="Assets\AirConsole\plugins\Newtonsoft.Json\Bson\BsonBinaryType.cs" />
      <Compile Include="Assets\AirConsole\plugins\Newtonsoft.Json\Bson\BsonBinaryWriter.cs" />
      <Compile Include="Assets\AirConsole\plugins\Newtonsoft.Json\Bson\BsonObjectId.cs" />
@@ -206,8 +202,9 @@
      <Compile Include="Assets\AirConsole\scripts\Settings.cs" />
      <Compile Include="Assets\AirConsole\scripts\WebsocketListener.cs" />
      <Compile Include="Assets\Animations\Splash\Splash.cs" />
-     <Compile Include="Assets\KnobMovement.cs" />
-     <Compile Include="Assets\Resources\GameManager.cs" />
+     <Compile Include="Assets\Scripts\GameManager.cs" />
+     <Compile Include="Assets\Scripts\KnobMovement.cs" />
+     <Compile Include="Assets\Scripts\PersonScript.cs" />
      <None Include="Assets\AirConsole\README.txt" />
      <None Include="Assets\Plugins\Android\AndroidManifest.xml" />
  <Reference Include="UnityEngine.UI">
@@ -221,9 +218,6 @@
  </Reference>
  <Reference Include="websocket-sharp">
  <HintPath>C:/Users/Cameron McPherson/Documents/GameJam/PoolParty/Assets/AirConsole/plugins/websocket-sharp.dll</HintPath>
- </Reference>
- <Reference Include="websocket-sharp">
- <HintPath>C:/Users/Cameron McPherson/Documents/GameJam/PoolParty/Assets/Plugins/websocket-sharp.dll</HintPath>
  </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

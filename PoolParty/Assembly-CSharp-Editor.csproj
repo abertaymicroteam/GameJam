@@ -83,9 +83,6 @@
  <Reference Include="websocket-sharp">
  <HintPath>C:/Users/Cameron McPherson/Documents/GameJam/PoolParty/Assets/AirConsole/plugins/websocket-sharp.dll</HintPath>
  </Reference>
- <Reference Include="websocket-sharp">
- <HintPath>C:/Users/Cameron McPherson/Documents/GameJam/PoolParty/Assets/Plugins/websocket-sharp.dll</HintPath>
- </Reference>
  <Reference Include="UnityEditor.Graphs">
  <HintPath>C:/Program Files/Unity/Editor/Data/Managed/UnityEditor.Graphs.dll</HintPath>
  </Reference>
