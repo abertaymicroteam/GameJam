@@ -115,6 +115,7 @@ public class GameManager : MonoBehaviour
 		{
 			Debug.Log ("Restart Tap");
 			restartTap = true;
+            GameState = STATE.GAME;
 		}
 		else
 		{
@@ -212,6 +213,7 @@ public class GameManager : MonoBehaviour
 					uiText.text = "Tap to Restart!";
 					if (restartTap) 
 					{
+                        Debug.Log("Restart Tap Entered");
 						destroyedPlayers = 0;
 						ResetGame ();
 						restartTap = false;

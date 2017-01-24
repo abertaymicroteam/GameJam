@@ -12,8 +12,8 @@ public class MenuScript : MonoBehaviour {
 	CHARACTER character;
 	public List<GameObject> CharacterGraphics;
 	private List<GameObject> ActiveGraphics = new List<GameObject> ();
-	private List<Vector2> GraphicPositions = new List<Vector2> {new Vector2(-6.56f, 2.37f), new Vector2(-2.41f, 2.37f), new Vector2(1.98f, 2.37f), new Vector2(6.24f, 2.37f),
-																new Vector2(-6.71f, -3.07f), new Vector2(-2.41f, -3.07f), new Vector2(1.98f, -3.07f), new Vector2(6.24f, -3.07f)};
+	private List<Vector2> GraphicPositions = new List<Vector2> {new Vector2(-6.57f, 2.61f), new Vector2(-2.19f, 2.61f), new Vector2(2.16f, 2.61f), new Vector2(6.49f, 2.61f),
+																new Vector2(-6.57f, -2.56f), new Vector2(-2.19f, -2.56f), new Vector2(2.16f, -2.56f), new Vector2(6.49f, -2.56f)};
 
 	// Use this for initialization
 	void Start () 
