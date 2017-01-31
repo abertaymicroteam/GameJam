@@ -7,22 +7,24 @@ using Newtonsoft.Json.Linq;
 
 public class GameManager : MonoBehaviour 
 {
-	public enum STATE { MENU, GAME, RESTART };
+	public enum STATE { MENU, GAME, RESTART, READY };
 
 	public STATE GameState;
 	public Vector3 SpawnLocation;
 	public List<GameObject> Players;
 	public GameObject[] Characters;
 	public List<int> TakenCharacters;
-	private MenuScript menu;
+	public MenuScript menu;
 	private float angle = 0.0f;
 	public float[] angles;
 	public int[] ID;
 	public int connectedPlayers;
 	public Text uiText;
 	private bool restartTap = false;
+	public bool newTap = false;
 	private int destroyedPlayers = 0;
 	private float timer = 3.0f;
+	public float rotatormes;
 	#if !DISABLE_AIRCONSOLE 
 
 
@@ -69,20 +71,27 @@ public class GameManager : MonoBehaviour
 			TakenCharacters[connectedPlayers] = character;
 
 			// Create player
-			GameObject newPlayer = Instantiate(Characters[character - 1], SpawnLocation, Quaternion.identity) as GameObject;
+			GameObject newPlayer = Instantiate(Characters[character], SpawnLocation, Quaternion.identity) as GameObject;
 			newPlayer.GetComponent<KnobMovement> ().SetID (connectedPlayers);
 			ID [connectedPlayers] = device_id;
 			Players.Add(newPlayer);
 
 			// Add Menu Graphic
-			menu.ShowConnectGraphic((MenuScript.CHARACTER)character - 1, connectedPlayers);
+			menu.ShowConnectGraphic(character, connectedPlayers);
 
 			// Increment connected players
 			connectedPlayers++;
 
-			if (AirConsole.instance.GetControllerDeviceIds ().Count > 3) 
+			JObject connectionMessage = new JObject ();
+			connectionMessage.Add ("vibrate", 100);
+			connectionMessage.Add ("charNo", character + 1);
+			AirConsole.instance.Message(device_id, connectionMessage);
+
+			// Is the game ready to play? (More than 1 player connected)
+			if (AirConsole.instance.GetControllerDeviceIds ().Count > 1) 
 			{				
-				StartGame ();
+				uiText.text = "Player 1 Tap To Start";
+				ReadyToPlay ();
 			} 
 			else 
 			{
@@ -113,41 +122,48 @@ public class GameManager : MonoBehaviour
 	{
 		if (GameState == STATE.RESTART) 
 		{
-			Debug.Log ("Restart Tap");
-			restartTap = true;
-            GameState = STATE.GAME;
+			int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber (device_id);
+			if (active_player != -1) 
+			{
+				restartTap = true;
+				GameState = STATE.GAME;
+			}
+		} 
+		else if (GameState == STATE.READY) 
+		{
+			uiText.text = "";
+			StartGame ();
 		}
 		else
-		{
+		{			
 			int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber (device_id);
-			if (active_player != -1) {
-				
-			}
-			
-			angle = (float)data ["move"];
-			
-			if (angle > 0) 
+			if (active_player != -1) 
 			{
-				angle = 180 - angle;
-			} 
-			else if (angle < 0) 
-			{
-				angle -= 180;
-				if (angle < 0) 
+				angle = (float)data ["move"];
+
+				if (angle > 0) 
 				{
-					angle += 360;
-				}
-				angle = 360 - angle;
-			}
-			
-			int it = 0;
-			foreach(int i in ID)
-			{
-				if(device_id == i)
+					angle = 180 - angle;
+				} 
+				else if (angle < 0) 
 				{
-					angles [it] = angle;
+					angle -= 180;
+					if (angle < 0) 
+					{
+						angle += 360;
+					}
+					angle = 360 - angle;
 				}
-				it ++;
+
+				int it = 0;
+				foreach(int i in ID)
+				{
+					if(device_id == i)
+					{
+						angles [it] = angle;
+					}
+					it ++;
+				}
 			}
 		}
 	}
@@ -155,9 +171,10 @@ public class GameManager : MonoBehaviour
 	void StartGame () 
 	{
 		//uiText.text = "";
-		//AirConsole.instance.SetActivePlayers (connectedPlayers);
+		AirConsole.instance.SetActivePlayers (connectedPlayers);
 		//ResetGame();
 		GameState = STATE.GAME;
+		menu.displayCountdown = true;
 		menu.HideMenu ();
 	}
 
@@ -193,6 +210,9 @@ public class GameManager : MonoBehaviour
 			// Check if there is a winner yet
 			if (destroyedPlayers == (connectedPlayers - 1)) 
 			{
+				// Display winner graphic
+				menu.ShowWinner ();
+
 				foreach (GameObject player in Players) 
 				{ // Stop all players movement
 					KnobMovement temp = player.GetComponent<KnobMovement> ();
@@ -210,9 +230,10 @@ public class GameManager : MonoBehaviour
 				{
 					GameState = STATE.RESTART;
 
-					uiText.text = "Tap to Restart!";
 					if (restartTap) 
 					{
+						menu.HideWinner ();
+						menu.displayRestart = true;
                         Debug.Log("Restart Tap Entered");
 						destroyedPlayers = 0;
 						ResetGame ();
@@ -220,6 +241,22 @@ public class GameManager : MonoBehaviour
 						timer = 3.0f;
 					}	
 				}
+			}
+
+			// Updating controllers with character rotations
+			int it = 0;
+			JObject angleMessage = new JObject ();
+			foreach(GameObject i in Players)
+			{
+
+				if(ID[it] != null)
+				{
+					angleMessage.Add ("angle", -(i.transform.rotation.eulerAngles.z));
+					AirConsole.instance.Message (ID[it], angleMessage);
+					//Debug.Log ("angle: " + -(i.transform.rotation.eulerAngles.z) + "to device " + it);
+					angleMessage.ClearItems();
+				}
+				it++;
 			}
 		}
 	}
@@ -249,6 +286,11 @@ public class GameManager : MonoBehaviour
 		Players.Clear ();
 	}
 
+	private void ReadyToPlay()
+	{
+		GameState = STATE.READY;
+	}
+
 	private int RandomCharacter()
 	{ // Returns a random index into the character list that is not already taken
 		
@@ -257,20 +299,20 @@ public class GameManager : MonoBehaviour
 
 		while (match == true) 
 		{
-			returnIndex = Random.Range (1, 5);
+			returnIndex = Random.Range (0, 3);
 
 			int matches = 0;
-			if (TakenCharacters.Count != 0) 
+			if (TakenCharacters.Count > 0) 
 			{
 				foreach (int i in TakenCharacters) 
 				{
-					if (returnIndex == TakenCharacters [i]) 
+					if (returnIndex == i) 
 					{
 						matches++;
 					}
 				}
 			}
-			if (matches < 2) 
+			if ((matches < 2))
 			{
 				match = false;
 			}

@@ -15,6 +15,7 @@ public class KnobMovement : MonoBehaviour {
 	private bool match;
 	private SpriteRenderer ringRenderer;
 	private CircleCollider2D col;
+	private float tapTimer = 0;
 
 	// Use this for initialization
 	void Start () 
@@ -33,7 +34,8 @@ public class KnobMovement : MonoBehaviour {
 		{
 			foreach (GameObject i in gMan.Players)
 			{
-				if(SpawnLocation.x <  i.transform.position.x + 2.0f && SpawnLocation.x > i.transform.position.x - 2.0   && SpawnLocation.y < i.transform.position.y + 2.0 && SpawnLocation.y > i.transform.position.y- 2.0){
+				if(SpawnLocation.x <  i.transform.position.x + 3.0f && SpawnLocation.x > i.transform.position.x - 3.0   && SpawnLocation.y < i.transform.position.y + 3.0 && SpawnLocation.y > i.transform.position.y- 3.0)
+				{
 					SpawnLocation.Set(Random.Range(-6,6),Random.Range(-4,4),0 );
 					match = true;
 				}
@@ -56,9 +58,13 @@ public class KnobMovement : MonoBehaviour {
 	// Update is called once per frame
 	void FixedUpdate () 
 	{
-		if ((gMan.getAngle (playerID) != lastAngle) && (gMan.GameState == GameManager.STATE.GAME) && (!destroyMe))
+		// Increment timer
+		tapTimer += Time.deltaTime;
+
+		if ((gMan.getAngle (playerID) != lastAngle) && (gMan.GameState == GameManager.STATE.GAME) && (!destroyMe) && (tapTimer > 0.125f) && (!gMan.menu.displayCountdown))
 		{ // New touch press
 
+			// Get angle
 			lastAngle = gMan.getAngle (playerID);
 
 			// Get mouse and player pos in world coords
@@ -76,6 +82,9 @@ public class KnobMovement : MonoBehaviour {
 
 			// Add force
 			rigBody.AddForce (direction * force, ForceMode2D.Impulse);
+
+			// Reset timer
+			tapTimer = 0;
 		}
 	}
 

@@ -10,58 +10,106 @@
                          navigator.msVibrate);
 
     var airconsole;
+    
 
     /**
      * Sets up the communication to the screen.
      */
     function init() {
-      airconsole = new AirConsole({"orientation": "portrait"});
-      airconsole.onMessage = function(from, data) {
-        if (from == AirConsole.SCREEN && data.vibrate) {
-          navigator.vibrate(data.vibrate);
-          console.log("Vibrating: " + data.vibrate);
-        }
+      var div = document.getElementById("player_id");
+      airconsole = new AirConsole({ "orientation": "portrait" });
+
+      //set up the touch response to use the move functoin
+      var button = document.getElementById('touchpad');
+      button.addEventListener('touchstart', move);
+
+      //get the button
+      var url = document.getElementById("butt");
+
+      airconsole.onMessage = function (from, data) {
+          if (from == AirConsole.SCREEN) 
+          {
+              if(data.charNo)
+              {
+                  switch (data.charNo) 
+                  {
+                      case 1: url.style.backgroundImage = "url(phil.png)";
+                          break;
+                      case 2: url.style.backgroundImage = "url(jamie.png)";
+                          break;
+                      case 3: url.style.backgroundImage = "url(wallace.png)";
+                          break;
+                      case 4: url.style.backgroundImage = "url(bertha.png)";
+                          break;
+                  }
+              }
+
+              if (data.angle)
+              {
+                  url.style.transform = "rotate(" + data.angle + "deg)";
+              }
+          }
+
       }
+  
+  
+    
       airconsole.onActivePlayersChange = function(player_number) {
         updateText(player_number);
       }
       airconsole.onReady = function() {
         updateText();
       }
+
+   
     }
 
-	function updateText(player_number) {
-	 /* var div = document.getElementById("player_id");
-      if (airconsole.getActivePlayerDeviceIds().length == 0) {
-        div.innerHTML = "Waiting for more players.";
-      } else if (player_number == undefined) {
-        div.innerHTML = "This is a 2 player game";
-      } else if (player_number == 0) {
-        div.innerHTML = "You are the player on the left";
-      } else if (player_number == 1) {
-        div.innerHTML = "You are the player on the right";
-      };*/
-	}
+    
+
+	//function updateText(player_number) {
+	//  var div = document.getElementById("player_id");
+    //  if (airconsole.getActivePlayerDeviceIds().length == 0) {
+    //    div.innerHTML = "Waiting for more players.";
+    //  } else if (player_number == undefined) {
+    //    div.innerHTML = "This is a 2 player game";
+    //  } else if (player_number == 0) {
+    //    div.innerHTML = "You are the player on the left";
+    //  } else if (player_number == 1) {
+    //    div.innerHTML = "You are the player on the right";
+    //  };
+	//}
 
     /**
      * Tells the screen to move the paddle of this player.
      * @param amount
      */
-    function move() {
-		var x = (event.clientX - (window.innerWidth/2));
-		var y = (event.clientY - (window.innerHeight/2));
+
+    function move(event) 
+    {     
+        //touch location - width
+		var x = (event.touches[0].pageX - (window.innerWidth/2));
+		var y = (event.touches[0].pageY - (window.innerHeight/2));
+
+		//handle dividing by 0
+		if(x ==0)
+		{
+			x += 1;
+		}
+		if(y==0)
+		{
+			y += 1;
+		}
+
+		//convert to degree from radians
 		var conversion = (Math.PI/180);
+
+		//formula
 		var angle = (Math.atan2(x,y)/conversion);
-      airconsole.message(	AirConsole.SCREEN, {move:  (( Math.atan2 ((event.pageX - (window.innerWidth/2))	, (event.pageY - (window.innerHeight/2))))/(Math.PI/180))})
-	  
-	  /*
-	  (( Math.atan2 ((event.clientX - (window.innerWidth/2))	, (event.clientY - (window.innerHeight/2))))/(Math.PI/180))
-	  (( Math.atan2 ((event.clientX - (screen.height/2))	, (event.y - (screen.width/2))))/(Math.PI/180))
-	  (atan2(x/y)/conversion)
-	  x = (event.clientX - (screen.height/2));
-	  y = (event.y - (screen.width/2));
-	  conversion = (Math.PI/180)
-	  */
+
+		if(angle!=null)
+		{
+      		airconsole.message(	AirConsole.SCREEN, {move:angle})
+	  	}
     }
 
     </script>
@@ -78,21 +126,46 @@
             text-align: center;
             background-color: yellow;
         }
+       
 
         .button {
+         	
             display: inline-block;
             height: 98%;
             width: 98%;
             background-color: #3EA0A1;
             position: relative;
-			
+            
+        }
+
+        .button_image {
+            background-image: url("thumbnail.png");
+            background-size: 150px;
+         	background-repeat: no-repeat;
+         	background-position: center center;
+            background-color: transparent;
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: -75px;
+            margin-left: -75px;
+            width: 150px;
+            height: 150px;
+
+            transform: rotate(90deg) ;
+           
+            
+          
         }
 
         .button_label {
+
 		position: absolute;
 		  top: 50%;
 		  left: 50%;
 		 transform: translate(-50%, -50%);
+		
 			
         }
 
@@ -108,11 +181,9 @@
 </head>
 <body onload="init()">
     <div style="height: 1%"></div>
-    <div class=button ontouchstart="move()"  onmousedown="move()" >
-        <div class="button_label">
-		<img src="http://i.imgur.com/Hnz9OXX.jpg" alt="art" height="100" width="100" >
-		</div>
+    <div id ="touchpad" class=button  >
+        <div id="butt" class="button_image"</div>
     </div>
-    <div id="player_id"></div>
+   
 </body>
 </html>
