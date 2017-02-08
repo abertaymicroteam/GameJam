@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
 	public List<GameObject> Players;
 	public GameObject[] Characters;
 	public List<int> TakenCharacters;
+	private int[] charNums = new int[8] {0, 1, 2, 3, 0, 1, 2, 3};
 	public MenuScript menu;
 	private float angle = 0.0f;
 	public float[] angles;
@@ -47,6 +48,9 @@ public class GameManager : MonoBehaviour
 
 		// Get Menu
 		menu =  GameObject.FindGameObjectWithTag("Menu").GetComponent<MenuScript>();
+
+		// Randomise character order
+		ShuffleArray<int>(charNums);
 	}
 	/// <summary>
 	/// We start the game if 2 players are connected and the game is not already running (activePlayers == null).
@@ -66,7 +70,8 @@ public class GameManager : MonoBehaviour
 			SpawnLocation.Set(0, 0, 0);
 
 			// Assign character
-			int character = RandomCharacter();
+			//int character = RandomCharacter();
+			int character = charNums[connectedPlayers];
 			Debug.Log (character);
 			TakenCharacters[connectedPlayers] = character;
 
@@ -320,5 +325,17 @@ public class GameManager : MonoBehaviour
 
 		return returnIndex;
 	}
+
+	public static void ShuffleArray<T>(T[] arr) 
+	{
+		for (int i = arr.Length - 1; i > 0; i--) 
+		{
+			int r = Random.Range(0, i + 1);
+			T tmp = arr[i];
+			arr[i] = arr[r];
+			arr[r] = tmp;
+		}
+	}
+
 	#endif
 }
