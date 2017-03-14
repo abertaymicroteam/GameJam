@@ -29,24 +29,50 @@
       airconsole.onMessage = function (from, data) {
           if (from == AirConsole.SCREEN) 
           {
-              if(data.charNo)
-              {
-                  switch (data.charNo) 
-                  {
-                      case 1: url.style.backgroundImage = "url(phil.png)";
+              if (data.state) {
+
+                  switch (data.state) {
+                      case 0:
+                          url.style.backgroundImage = "url(taptoplay.png)";
+                          url.style.transform = "rotate(0deg)";
                           break;
-                      case 2: url.style.backgroundImage = "url(jamie.png)";
+                      case 1:
+                          if (data.charNo) {
+                              switch (data.charNo) {
+                                  case 1: url.style.backgroundImage = "url(phil.png)";
+                                      break;
+                                  case 2: url.style.backgroundImage = "url(jamie.png)";
+                                      break;
+                                  case 3: url.style.backgroundImage = "url(wallace.png)";
+                                      break;
+                                  case 4: url.style.backgroundImage = "url(bertha.png)";
+                                      break;
+                                  case 5: url.style.backgroundImage = "url(adrian.png)";
+                                      break;
+                                  case 6: url.style.backgroundImage = "url(betty.png)";
+                                      break;
+                                  case 7: url.style.backgroundImage = "url(mike.png)";
+                                      break;
+                                  case 8: url.style.backgroundImage = "url(tam.png)";
+                                      break;
+                              }
+                              if (data.angle) {
+                                  url.style.transform = "rotate(" + data.angle + "deg)";
+                              }
+                          }
                           break;
-                      case 3: url.style.backgroundImage = "url(wallace.png)";
+                      case 2:
+                          url.style.backgroundImage = "url(taptoplay.png)";
+                          url.style.transform = "rotate(0deg)";
                           break;
-                      case 4: url.style.backgroundImage = "url(bertha.png)";
+                      case 3:
+                          url.style.backgroundImage = "url(taptoplay.png)";
+                          url.style.transform = "rotate(0deg)";
                           break;
                   }
-              }
+         
 
-              if (data.angle)
-              {
-                  url.style.transform = "rotate(" + data.angle + "deg)";
+                    
               }
           }
 
@@ -54,11 +80,13 @@
   
   
     
-      airconsole.onActivePlayersChange = function(player_number) {
-        updateText(player_number);
+      airconsole.onActivePlayersChange = function(player_number) 
+      {
+        //updateText(player_number);
       }
-      airconsole.onReady = function() {
-        updateText();
+      airconsole.onReady = function() 
+      {
+        //updateText();
       }
 
    
@@ -139,7 +167,7 @@
         }
 
         .button_image {
-            background-image: url("thumbnail.png");
+            background-image: url("loading.png");
             background-size: 150px;
          	background-repeat: no-repeat;
          	background-position: center center;
@@ -153,7 +181,7 @@
             width: 150px;
             height: 200px;
 
-            transform: rotate(90deg) ;
+            transform: rotate(0deg) ;
            
             
           

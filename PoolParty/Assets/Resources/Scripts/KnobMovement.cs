@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class KnobMovement : MonoBehaviour {
 
@@ -7,6 +8,7 @@ public class KnobMovement : MonoBehaviour {
 	public Splash splash;
 	public int playerID;
 	private GameManager gMan;
+	private AudioManager audioMan;
 
 	public float force;
 	private float lastAngle;
@@ -14,8 +16,22 @@ public class KnobMovement : MonoBehaviour {
 	public Vector3 SpawnLocation;
 	private bool match;
 	private SpriteRenderer ringRenderer;
-	private CircleCollider2D col;
+	public int characterNumber = 0;
 	private float tapTimer = 0;
+
+	// Collisions
+	private CircleCollider2D col;
+	private List<Collider2D> currentColliders = new List<Collider2D>();
+	private bool colliding;
+
+	// limiting velocity
+	private float startDrag;
+	private float dragTimer = 1.0f;
+	private bool drag = false;
+
+	// Don't play audio for same collision within 0.5 seconds
+	private float audioTimer = 0.5f;
+	private int lastCollided = 0; 
 
 	// Use this for initialization
 	void Start () 
@@ -23,9 +39,12 @@ public class KnobMovement : MonoBehaviour {
 		// Get objects and initialise variables
 		rigBody = gameObject.GetComponent<Rigidbody2D> ();
 		gMan = GameObject.FindObjectOfType<GameManager> ();
+		audioMan = GameObject.FindGameObjectWithTag ("Audio").GetComponent<AudioManager> ();
 		lastAngle = 0.0f;
 		ringRenderer = gameObject.GetComponent<SpriteRenderer> ();
 		col = gameObject.GetComponent<CircleCollider2D> ();
+
+		startDrag = rigBody.drag;
 
 		// Generate random start position
 		SpawnLocation.Set(Random.Range(-6,6),Random.Range(-4,4), 0);
@@ -60,6 +79,25 @@ public class KnobMovement : MonoBehaviour {
 	{
 		// Increment timer
 		tapTimer += Time.deltaTime;
+		if (audioTimer > 0) {
+			audioTimer -= Time.deltaTime;
+		}
+
+		// Limit velocity
+		if (rigBody.velocity.magnitude > 15) 
+		{
+			rigBody.drag = 20;
+			drag = true;
+		}
+		if (drag) {
+			if (dragTimer > 0) {
+				dragTimer -= Time.deltaTime;
+			} else {
+				rigBody.drag = startDrag;
+				drag = false;
+				dragTimer = 1.0f;
+			}
+		}
 
 		if ((gMan.getAngle (playerID) != lastAngle) && (gMan.GameState == GameManager.STATE.GAME) && (!destroyMe) && (tapTimer > 0.125f) && (!gMan.menu.displayCountdown))
 		{ // New touch press
@@ -102,43 +140,101 @@ public class KnobMovement : MonoBehaviour {
 
 	void OnTriggerEnter2D(Collider2D other) 
 	{
-		// Hide sprite and disable collisions
-		ringRenderer.enabled = false;
-		col.enabled = false;
-		rigBody.velocity.Set (0, 0);
-
-		// Set flag for game manager
-		destroyMe = true;
-		gMan.KillMe ();
-
-		//set respawn position
-		SpawnLocation.Set(Random.Range(-6,6),Random.Range(-4,4), 0);
-		bool match = true;
-		do 
+		if(other.tag == "Score")
+		{ // If overlapping with a score sprite, fade out the sprite
+			ScoreScript scoreScript = other.GetComponent<ScoreScript> ();
+			scoreScript.FadeOut ();
+			currentColliders.Add(other);
+			if (!destroyMe)
+			colliding = true;
+		}
+		else
 		{
-			foreach (GameObject i in gMan.Players)
+			// Hide sprite and disable collisions
+			ringRenderer.enabled = false;
+			col.enabled = false;
+			rigBody.velocity.Set (0, 0);
+
+			// Check if currently fading out a score
+			if (colliding) 
 			{
-				if(SpawnLocation.x <  i.transform.position.x + 1.5 && SpawnLocation.x > i.transform.position.x - 1.5   && SpawnLocation.y < i.transform.position.y + 1.5 && SpawnLocation.y > i.transform.position.y-1.5){
-					SpawnLocation.Set(Random.Range(-5,5),Random.Range(-3,3),0 );
-					match = true;
-				}
-				else
+				foreach (Collider2D coll in currentColliders) 
 				{
-					match = false;
+					// Fade score back in
+					ScoreScript temp = coll.GetComponent<ScoreScript> ();
+					temp.FadeIn ();
+				}
+				colliding = false;
+			}
+			
+			// Play death sound
+			audioMan.PlayDeath();
+			
+			// Set flag for game manager
+			destroyMe = true;
+			gMan.KillMe ();
+			
+			//set respawn position
+			SpawnLocation.Set(Random.Range(-6,6),Random.Range(-4,4), 0);
+			bool match = true;
+			do 
+			{
+				foreach (GameObject i in gMan.Players)
+				{
+					if(SpawnLocation.x <  i.transform.position.x + 1.5 && SpawnLocation.x > i.transform.position.x - 1.5   && SpawnLocation.y < i.transform.position.y + 1.5 && SpawnLocation.y > i.transform.position.y-1.5){
+						SpawnLocation.Set(Random.Range(-5,5),Random.Range(-3,3),0 );
+						match = true;
+					}
+					else
+					{
+						match = false;
+					}
+				}
+			} 
+			while(match);
+			
+			rigBody.drag = 100;
+			
+			gameObject.transform.position = SpawnLocation;
+		}
+
+	}
+
+	void OnTriggerExit2D(Collider2D other)
+	{
+		if(other.tag == "Score")
+		{
+			ScoreScript scoreScript = other.GetComponent<ScoreScript> ();
+			scoreScript.FadeIn ();
+			currentColliders.Remove (other);
+			if (currentColliders.Count == 0)
+			colliding = false;
+		}
+	}
+
+	void OnCollisionEnter2D(Collision2D collision)
+	{
+		if(collision.gameObject.tag == "Player")
+		{
+			// Play hit audio on only one collider (whichever instance ID is lower)
+			if (gameObject.GetInstanceID() < collision.gameObject.GetInstanceID()) 
+			{
+				if (audioTimer > 0 && collision.gameObject.GetInstanceID() == lastCollided)
+				{
+					// Do not play audio
+				}
+				else 
+				{
+					audioMan.PlayHit ();
+					lastCollided = collision.gameObject.GetInstanceID ();
+					audioTimer = 0.5f;
 				}
 			}
-		} 
-		while(match);
-
-		rigBody.drag = 100;
-
-		gameObject.transform.position = SpawnLocation;
-
+		}
 	}
 
 	public void RestartMe()
 	{
-		Debug.Log ("Player restart");
 		destroyMe = false;
 		ringRenderer.enabled = true;
 		col.enabled = true;

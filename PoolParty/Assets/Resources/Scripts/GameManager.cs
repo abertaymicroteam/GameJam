@@ -7,27 +7,52 @@ using Newtonsoft.Json.Linq;
 
 public class GameManager : MonoBehaviour 
 {
+	// Game State
 	public enum STATE { MENU, GAME, RESTART, READY };
-
 	public STATE GameState;
+
+	// Scripts
+	public MenuScript menu;
+	private AudioManager audioMan;
+
+	// Objects for Shrinking
+	private GameObject border;
+	private GameObject boundaries;
+	private Camera cam;
+	private GameObject scores;
+
+	// Players
 	public Vector3 SpawnLocation;
 	public List<GameObject> Players;
 	public GameObject[] Characters;
 	public List<int> TakenCharacters;
-	private int[] charNums = new int[8] {0, 1, 2, 3, 0, 1, 2, 3};
-	public MenuScript menu;
+	private int[] charNums = new int[8] {0, 1, 2, 3, 4, 5, 6, 7};
 	private float angle = 0.0f;
 	public float[] angles;
 	public int[] ID;
-	public int connectedPlayers;
-	public Text uiText;
-	private bool restartTap = false;
-	public bool newTap = false;
+	public int connectedPlayers = 0;
+	private int prevConnectedPlayers = 0;
 	private int destroyedPlayers = 0;
+
+	// Misc
+	private bool restartTap = false;
+	private bool playWin = false;
+	private bool playDrop = false;
+	public bool newTap = false;
 	private float timer = 3.0f;
+	private float shrinkTimer = 15.0f;
+	private bool shrunk = false;
+	private bool borderRed = false;
+	private bool winIncremented = false;
 	public float rotatormes;
 	#if !DISABLE_AIRCONSOLE 
 
+
+	//variables for update message
+	public float[] prevAngle;
+	private float currentAngle;
+	private int msgI = 0;
+	private float messagetimer = 0.1f; // Messages limited to 10 per second
 
 	public float getAngle(int ID)
 	{
@@ -43,11 +68,20 @@ public class GameManager : MonoBehaviour
 
 	void Start()
 	{
-//		uiText.text = AirConsole.instance.GetControllerDeviceIds ().Count + "PLAYERS CONNECTED";
+		// Set initial game state
 		GameState = STATE.MENU;
 
 		// Get Menu
 		menu =  GameObject.FindGameObjectWithTag("Menu").GetComponent<MenuScript>();
+
+		// Get Audio Manager
+		audioMan = GameObject.FindGameObjectWithTag("Audio").GetComponent<AudioManager>();
+
+		// Get objects to shrink
+		border = GameObject.FindGameObjectWithTag("Border");
+		boundaries = GameObject.FindGameObjectWithTag ("Boundaries");
+		cam = GameObject.FindGameObjectWithTag ("MainCamera").GetComponent<Camera>();
+		scores = GameObject.FindGameObjectWithTag ("Scores");
 
 		// Randomise character order
 		ShuffleArray<int>(charNums);
@@ -64,7 +98,7 @@ public class GameManager : MonoBehaviour
 
 	void OnConnect (int device_id) 
 	{
-		if (AirConsole.instance.GetActivePlayerDeviceIds.Count == 0) 
+		if ((GameState == STATE.MENU || GameState == STATE.READY) && connectedPlayers < 8) 
 		{
 			// Set default spawn
 			SpawnLocation.Set(0, 0, 0);
@@ -72,11 +106,11 @@ public class GameManager : MonoBehaviour
 			// Assign character
 			//int character = RandomCharacter();
 			int character = charNums[connectedPlayers];
-			Debug.Log (character);
 			TakenCharacters[connectedPlayers] = character;
 
 			// Create player
 			GameObject newPlayer = Instantiate(Characters[character], SpawnLocation, Quaternion.identity) as GameObject;
+			newPlayer.GetComponent<KnobMovement> ().characterNumber = character;
 			newPlayer.GetComponent<KnobMovement> ().SetID (connectedPlayers);
 			ID [connectedPlayers] = device_id;
 			Players.Add(newPlayer);
@@ -87,15 +121,20 @@ public class GameManager : MonoBehaviour
 			// Increment connected players
 			connectedPlayers++;
 
+			// Send connection message to controller
 			JObject connectionMessage = new JObject ();
-			connectionMessage.Add ("vibrate", 100);
-			connectionMessage.Add ("charNo", character + 1);
+			connectionMessage.Add ("state", (int)GameState);
+			connectionMessage.Add ("angle", 0);
 			AirConsole.instance.Message(device_id, connectionMessage);
+			AirConsole.instance.SetActivePlayers (8);
 
-			// Is the game ready to play? (More than 1 player connected)
-			if (AirConsole.instance.GetControllerDeviceIds ().Count > 1) 
-			{				
-				uiText.text = "Player 1 Tap To Start";
+			// Play connect sound
+			audioMan.PlayDrop();
+
+			// Is the game ready to play? (1 player connected)
+			if (AirConsole.instance.GetControllerDeviceIds ().Count > 0 ) 
+			{	
+				menu.HideTitle ();
 				ReadyToPlay ();
 			} 
 			else 
@@ -106,7 +145,7 @@ public class GameManager : MonoBehaviour
 	}
 
 	/// <summary>
-	/// If the game is running and one of the active players leaves, we reset the game.
+	/// If the game is running and one of the active players leaves, we remove their character and continue playing.
 	/// </summary>
 	/// <param name="device_id">The device_id that has left.</param>
 	void OnDisconnect (int device_id) 
@@ -114,7 +153,43 @@ public class GameManager : MonoBehaviour
 		int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber (device_id);
 		if (active_player != -1) 
 		{
-			//Restart();		
+			Debug.Log ("Player " + active_player + " disconnected. Removing!");
+
+			// Update counters for current player states
+			connectedPlayers --;
+			if (Players [active_player].GetComponent<KnobMovement> ().destroyMe && destroyedPlayers > 0) 
+			{
+				destroyedPlayers--;
+			}
+
+			// Allow character to be retaken
+			int toRemove = -1;
+			foreach(int i in TakenCharacters)
+			{
+				if (i == Players[active_player].GetComponent<KnobMovement>().characterNumber)
+				{
+					toRemove = i;
+				}
+			}
+			if (toRemove != -1)
+				TakenCharacters.Remove (toRemove);
+
+			// Remove player connect graphic from menu
+			menu.UpdateConnectGraphics(active_player);
+
+			// Destroy game object and remove from list
+			Destroy(Players [active_player]);
+			Players.Remove (Players [active_player]);
+			AirConsole.instance.SetActivePlayers (8);
+			//Players.RemoveAll (item => item == null);
+
+			// If there are no more players connected, go back to menu and wait for connection.
+			if (connectedPlayers == 0) 
+			{
+				menu.ShowMenu ();
+				GameState = STATE.MENU;
+				ShuffleArray<int> (charNums);
+			}
 		}
 	}
 
@@ -136,16 +211,18 @@ public class GameManager : MonoBehaviour
 		} 
 		else if (GameState == STATE.READY) 
 		{
-			uiText.text = "";
 			StartGame ();
 		}
 		else
 		{			
+			//if a player is active 
 			int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber (device_id);
 			if (active_player != -1) 
 			{
+				//get the angle information from the players tap
 				angle = (float)data ["move"];
 
+				//calculate were to apply force to the player
 				if (angle > 0) 
 				{
 					angle = 180 - angle;
@@ -160,6 +237,7 @@ public class GameManager : MonoBehaviour
 					angle = 360 - angle;
 				}
 
+				//store iformation on where to spawn splash
 				int it = 0;
 				foreach(int i in ID)
 				{
@@ -175,16 +253,37 @@ public class GameManager : MonoBehaviour
 
 	void StartGame () 
 	{
-		//uiText.text = "";
-		AirConsole.instance.SetActivePlayers (connectedPlayers);
-		//ResetGame();
+		// Check if single player
+		if (connectedPlayers == 1)
+		{
+			// turn on walls
+			GameObject walls = GameObject.FindGameObjectWithTag("Wall");
+			walls.SetActive (true);
+		}
+		else
+		{
+			// turn off walls
+			GameObject walls = GameObject.FindGameObjectWithTag("Wall");
+			walls.SetActive(false);
+		}
+
+		AirConsole.instance.SetActivePlayers (8);
 		GameState = STATE.GAME;
+		MessageAll ();
 		menu.displayCountdown = true;
 		menu.HideMenu ();
+		menu.ShowScores ();
+
+		// Play game start audio
+		audioMan.PlayGameStart();
 	}
 
 	void ResetGame() 
 	{
+		// Play splash
+		audioMan.PlayGameStart();
+
+		// Restart game objects
 		foreach (GameObject player in Players) 
 		{
 			KnobMovement temp = player.GetComponent<KnobMovement> ();
@@ -204,66 +303,255 @@ public class GameManager : MonoBehaviour
 				}
 			}
 		}
-		uiText.text = "";
+
+		// Reset shrink timer
+		shrinkTimer = 15.0f;
+
+		// Set new game state
 		GameState = STATE.GAME;
 	}
 
 	void FixedUpdate () 
 	{
+		if (GameState == STATE.READY && connectedPlayers != prevConnectedPlayers) 
+		{
+			MessageAll ();
+			prevConnectedPlayers = connectedPlayers;
+		}
 		if (GameState == STATE.GAME) 
 		{
 			// Check if there is a winner yet
-			if (destroyedPlayers == (connectedPlayers - 1)) 
-			{
-				// Display winner graphic
-				menu.ShowWinner ();
+			if (destroyedPlayers == (connectedPlayers - 1) && destroyedPlayers > 0) {
+				// Get player ID
+				int winningPlayer = -1;
+				foreach (GameObject player in Players) {
+					KnobMovement script = player.GetComponent<KnobMovement> ();
+					if (script.destroyMe == false) 
+					{
+						winningPlayer = script.playerID; // Get ID
+						PersonScript pScript = player.GetComponentInChildren<PersonScript>();
+						if (!winIncremented)
+						{
+							pScript.numWins++; // Increment wins for winning player
+							winIncremented = true;
+						}
+					}
+				}
 
-				foreach (GameObject player in Players) 
-				{ // Stop all players movement
+				// Get Player nickname with ID
+				string name = "No Nickname";
+				if (winningPlayer != -1) 
+				{
+					int device = AirConsole.instance.ConvertPlayerNumberToDeviceId (winningPlayer);
+					name = AirConsole.instance.GetNickname (device);
+				}
+				// Display winner graphic and play sound
+				menu.ShowWinner (name);
+				if (!playWin) {
+					audioMan.PlayWin ();
+					playWin = true;
+				}
+
+				//Stop player movement
+				foreach (GameObject player in Players) { 
 					KnobMovement temp = player.GetComponent<KnobMovement> ();
 					temp.rigBody.drag = 100;
 				} 
 
+				// If pool is shrunk, return to original
+				if (shrunk) {
+					shrunk = false;
+					int time = 2; // Seconds
+					Vector3 borderDest = new Vector3 (0.9262f, 0.93f, 0.9279742f);
+					Vector3 boundaryDest = new Vector3 (1.0f, 1.0f, 1.0f);
+					Vector3 scoresDest = new Vector3 (0.36841f, 0.36841f, 0.36841f);
+					int camSize = 5;
 
-				// Only one player left, win condition
-				if (timer > 0.0f) 
-				{
+					StartCoroutine (Resize (time, border, borderDest));
+					StartCoroutine (Resize (time, boundaries, boundaryDest));
+					StartCoroutine (Resize (time, scores, scoresDest));
+					StartCoroutine (ResizeCamera (time, cam, camSize));
+				}
+				if (borderRed) {
+					borderRed = false;
+					Color blue = new Color (56.0f / 255.0f, 58.0f / 255.0f, 1.0f, 194.0f / 255.0f);
+					StartCoroutine (FadeColour (2.0f, border.GetComponent<SpriteRenderer> (), blue));
+				}
+
+
+				//Count down restart timer
+				if (timer > 0.0f) {
 					timer -= Time.deltaTime;
-					uiText.text = (int)timer + " seconds to restart";
+					//uiText.text = (int)timer + " seconds to restart";
 				} 
-				else 
-				{
+				//When timer has reached zero restart the game when a player taps the screen
+				else {
 					GameState = STATE.RESTART;
 
-					if (restartTap) 
-					{
+					menu.ShowTapToRestart ();
+					if (!playDrop) {
+						audioMan.PlayDrop ();
+						playDrop = true;
+					}
+
+					if (restartTap) {
+						// Reset bools
+						playWin = false;
+						playDrop = false;
+						winIncremented = false;
+						restartTap = false;
+
+						// Update Menu
 						menu.HideWinner ();
 						menu.displayRestart = true;
-                        Debug.Log("Restart Tap Entered");
+
+						// Reset
 						destroyedPlayers = 0;
 						ResetGame ();
+						timer = 3.0f;
+					}	
+				}
+			} else if (destroyedPlayers == connectedPlayers && connectedPlayers > 0) 
+			{
+				// Players have been crafty and all died, so restart
+				// If pool is shrunk, return to original
+				if (shrunk) {
+					shrunk = false;
+					int time = 2; // Seconds
+					Vector3 borderDest = new Vector3 (0.9262f, 0.93f, 0.9279742f);
+					Vector3 boundaryDest = new Vector3 (1.0f, 1.0f, 1.0f);
+					Vector3 scoresDest = new Vector3 (0.36841f, 0.36841f, 0.36841f);
+					int camSize = 5;
+
+					StartCoroutine (Resize (time, border, borderDest));
+					StartCoroutine (Resize (time, boundaries, boundaryDest));
+					StartCoroutine (Resize (time, scores, scoresDest));
+					StartCoroutine (ResizeCamera (time, cam, camSize));
+				}
+				if (borderRed) {
+					borderRed = false;
+					Color blue = new Color (56.0f / 255.0f, 58.0f / 255.0f, 1.0f, 194.0f / 255.0f);
+					StartCoroutine (FadeColour (2.0f, border.GetComponent<SpriteRenderer> (), blue));
+				}
+
+
+				//Count down restart timer
+				if (timer > 0.0f) {
+					timer -= Time.deltaTime;
+					//uiText.text = (int)timer + " seconds to restart";
+				} 
+				//When timer has reached zero restart the game when a player taps the screen
+				else {
+					GameState = STATE.RESTART;
+
+					menu.ShowTapToRestart ();
+					if (!playDrop) {
+						audioMan.PlayDrop ();
+						playDrop = true;
+					}
+
+					if (restartTap) {
+						// Reset bools
+						playWin = false;
+						playDrop = false;
+						winIncremented = false;
 						restartTap = false;
+
+						// Update Menu
+						menu.HideWinner ();
+						menu.displayRestart = true;
+
+						// Reset
+						destroyedPlayers = 0;
+						ResetGame ();
 						timer = 3.0f;
 					}	
 				}
 			}
+			else // No winner yet
+			{
+				// Determine when to shrink the pool size
+				if (shrinkTimer < 2 && !borderRed && connectedPlayers > 1) 
+				{
+					borderRed = true;
+					Color red = new Color (1.0f, 0.0f, 0.0f, 194.0f / 255.0f);
+					StartCoroutine (FadeColour (2.0f, border.GetComponent<SpriteRenderer> (), red));
+				}
+				if (shrinkTimer > 0 && !shrunk) 
+				{
+					shrinkTimer -= Time.deltaTime;
+				} 
+				else 
+				{
+					if (!shrunk && connectedPlayers > 1) 
+					{ 
+						// Shrink the pool
+						float time = 1.5f; // Seconds
+						Vector3 borderDest = new Vector3 (0.7416216f, 0.7446644f, 0.7430422f);
+						Vector3 boundaryDest = new Vector3 (0.80553f, 0.80553f, 0.80553f);
+						Vector3 scoresDest = new Vector3 (0.29f, 0.29f, 0.29f);
+						int camSize = 4;
+
+						audioMan.PlayStretch ();
+						StartCoroutine (Resize (time, border, borderDest));
+						StartCoroutine (Resize (time, boundaries, boundaryDest));
+						StartCoroutine (ResizeCamera (time, cam, camSize));
+						StartCoroutine (Resize (time, scores, scoresDest));
+						shrunk = true;
+						shrinkTimer = 15.0f;
+					}
+				}
+			}
 
 			// Updating controllers with character rotations
-			int it = 0;
-			JObject angleMessage = new JObject ();
-			foreach(GameObject i in Players)
+			messagetimer -= Time.deltaTime;
+			if (messagetimer < 0) 
 			{
+				// Reset iterator 
+				msgI = 0;		
 
-				if(ID[it] != null)
+				//iterate through all players calculate angles and send to respective controllers 
+				foreach (GameObject i in Players) 
 				{
-					angleMessage.Add ("angle", -(i.transform.rotation.eulerAngles.z));
-					AirConsole.instance.Message (ID[it], angleMessage);
-					//Debug.Log ("angle: " + -(i.transform.rotation.eulerAngles.z) + "to device " + it);
-					angleMessage.ClearItems();
+					//calculate the current angle of the player to 2 decimal places 
+					currentAngle = (Mathf.Round ((i.transform.rotation.eulerAngles.z * 100)) / 100);
+
+					//send message to the player
+					UpdateMessage (currentAngle, charNums[msgI], msgI);
+
+					//increase iterator
+					msgI++;
+
 				}
-				it++;
-			}
+				messagetimer = 0.1f;
+			}			
 		}
+	}
+
+
+	// Sends a message to the players controller with the current rotation of their character 
+	void UpdateMessage(float angle, int character, int iterator){
+
+		JObject msg = new JObject ();			//message 
+
+		//if current angle is different from the last angle sent send a new message to the controller with an updated rotation 
+		//output information sent to console
+		if ((int)angle != (int)prevAngle[iterator]) 
+		{
+			msg.Add ("angle", (int)(-angle));						//add rotation to msg
+			msg.Add ("charNo", character + 1);							//add char number to msg
+			msg.Add ("state", (int)GameState);
+			AirConsole.instance.Message (ID [iterator], msg);		//send message
+			debugMessage(msg, ID[iterator]);						//debug
+			prevAngle[iterator] = angle;							//update previous angle
+			msg.ClearItems();										//clear item
+		}
+
+	}
+
+	//Debug message for what information has been sent to controller
+	void debugMessage(JObject msg, int ID){
+//		Debug.Log ("Message: " + msg + " sent to device: " + ID );
 	}
 
 	void OnDestroy () 
@@ -282,7 +570,7 @@ public class GameManager : MonoBehaviour
 
 	private void Restart()
 	{
-		AirConsole.instance.SetActivePlayers (0);
+		AirConsole.instance.SetActivePlayers (8);
 		connectedPlayers = 0;
 		foreach (GameObject player in Players) 
 		{
@@ -304,7 +592,7 @@ public class GameManager : MonoBehaviour
 
 		while (match == true) 
 		{
-			returnIndex = Random.Range (0, 3);
+			returnIndex = Random.Range (0, 7);
 
 			int matches = 0;
 			if (TakenCharacters.Count > 0) 
@@ -317,13 +605,78 @@ public class GameManager : MonoBehaviour
 					}
 				}
 			}
-			if ((matches < 2))
+			if ((matches >= 1))
 			{
 				match = false;
 			}
 		}
 
 		return returnIndex;
+	}
+
+	private IEnumerator Resize(float time, GameObject obj, Vector3 desiredScale)
+	{
+		Vector3 currentScale = obj.transform.localScale;
+
+		float currTime = 0.0f;
+
+		while (currTime <= time)
+		{
+			obj.transform.localScale = Vector3.Lerp (currentScale, desiredScale, currTime / time);
+			currTime += Time.deltaTime;
+			yield return null;
+		}
+	}
+
+	private IEnumerator ResizeCamera(float time, Camera cam, float desiredSize)
+	{
+		float currentSize = cam.orthographicSize;
+
+		float currTime = 0.0f;
+
+		while (currTime <= time)
+		{
+			cam.orthographicSize = Mathf.Lerp (currentSize, desiredSize, currTime / time);
+			currTime += Time.deltaTime;
+			yield return null;
+		}
+	}
+
+	private IEnumerator FadeColour(float time, SpriteRenderer rend, Color desiredColour)
+	{
+		Color currentColour = rend.color;
+
+		float currTime = 0.0f;
+
+		while (currTime <= time)
+		{
+			rend.color = Color.Lerp (currentColour, desiredColour, currTime / time);
+			currTime += Time.deltaTime;
+			yield return null;
+		}
+	}
+
+	private void MessageAll()
+	{
+		int iteratorl = 0;		
+
+		JObject statemsg = new JObject ();	
+
+		//iterate through all players calculate angles and send to respective controllers 
+		foreach (GameObject i in Players) 
+		{
+			//add state
+			statemsg.Add("state", (int)GameState);
+			statemsg.Add ("charNo", charNums[iteratorl] + 1);
+			//send message to the player
+			AirConsole.instance.Message (ID [iteratorl], statemsg);		//send message
+			debugMessage(statemsg, ID[iteratorl]);					//debug						
+			statemsg.ClearItems();	
+
+			//increase iterator
+			iteratorl++;
+		}
+
 	}
 
 	public static void ShuffleArray<T>(T[] arr) 
