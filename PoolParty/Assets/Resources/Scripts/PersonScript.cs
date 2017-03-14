@@ -5,6 +5,7 @@ public class PersonScript : MonoBehaviour {
 
 	private SpriteRenderer myRenderer;
 	private KnobMovement ringScript;
+	public int numWins = 0;
 
 	// Use this for initialization
 	void Start () 
