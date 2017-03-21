@@ -1,0 +1,213 @@
+fileFormatVersion: 2
+guid: 8fa3836fea2f19643ade8dbc946e2eb4
+timeCreated: 1487937565
+licenseType: Free
+TextureImporter:
+  fileIDToRecycleName:
+    21300000: sprite sheet new characters with shadows_0
+    21300002: sprite sheet new characters with shadows_1
+    21300004: sprite sheet new characters with shadows_4
+    21300006: sprite sheet new characters with shadows_5
+    21300008: sprite sheet new characters with shadows_6
+    21300010: sprite sheet new characters with shadows_7
+    21300012: sprite sheet new characters with shadows_8
+    21300014: sprite sheet new characters with shadows_9
+    21300016: sprite sheet new characters with shadows_10
+    21300018: sprite sheet new characters with shadows_11
+    21300020: sprite sheet new characters with shadows_12
+  serializedVersion: 2
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    linearTexture: 0
+    correctGamma: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 0
+  cubemapConvolution: 0
+  cubemapConvolutionSteps: 7
+  cubemapConvolutionExponent: 1.5
+  seamlessCubemap: 0
+  textureFormat: -1
+  maxTextureSize: 2048
+  textureSettings:
+    filterMode: -1
+    aniso: 16
+    mipBias: -1
+    wrapMode: 1
+  nPOTScale: 0
+  lightmap: 0
+  rGBM: 0
+  compressionQuality: 50
+  allowsAlphaSplitting: 0
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spritePixelsToUnits: 100
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  buildTargetSettings: []
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: sprite sheet new characters with shadows_0
+      rect:
+        serializedVersion: 2
+        x: 36
+        y: 821
+        width: 557
+        height: 632
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: sprite sheet new characters with shadows_1
+      rect:
+        serializedVersion: 2
+        x: 2044
+        y: 858
+        width: 476
+        height: 623
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: sprite sheet new characters with shadows_4
+      rect:
+        serializedVersion: 2
+        x: 743
+        y: 84
+        width: 574
+        height: 539
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: sprite sheet new characters with shadows_5
+      rect:
+        serializedVersion: 2
+        x: 1330
+        y: 111
+        width: 598
+        height: 529
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: sprite sheet new characters with shadows_6
+      rect:
+        serializedVersion: 2
+        x: 1939
+        y: 86
+        width: 581
+        height: 561
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: sprite sheet new characters with shadows_7
+      rect:
+        serializedVersion: 2
+        x: 2108
+        y: 620
+        width: 88
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: sprite sheet new characters with shadows_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 543
+        height: 510
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: sprite sheet new characters with shadows_9
+      rect:
+        serializedVersion: 2
+        x: 1334
+        y: 0
+        width: 39
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: sprite sheet new characters with shadows_10
+      rect:
+        serializedVersion: 2
+        x: 1378
+        y: 11
+        width: 6
+        height: 5
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: sprite sheet new characters with shadows_11
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 826
+        width: 430
+        height: 626
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: sprite sheet new characters with shadows_12
+      rect:
+        serializedVersion: 2
+        x: 1036
+        y: 831
+        width: 456
+        height: 626
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    outline: []
+  spritePackingTag: 
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
