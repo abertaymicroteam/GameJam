@@ -148,7 +148,7 @@ public class KnobMovement : MonoBehaviour {
 			if (!destroyMe)
 			colliding = true;
 		}
-		else
+		else if (other.tag != "PowerUp")
 		{
 			// Hide sprite and disable collisions
 			ringRenderer.enabled = false;

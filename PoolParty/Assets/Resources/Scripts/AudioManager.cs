@@ -12,10 +12,12 @@ public class AudioManager : MonoBehaviour {
 	public AudioClip gameStart;
 	public AudioClip countdownDrop;
 	public AudioClip hit;
+	public AudioClip boing;
 	public AudioClip death;
 	public AudioClip bell;
 	public AudioClip win;
 	public AudioClip stretch;
+	public AudioClip showdown;
 
 	// Use this for initialization
 	void Start () 
@@ -65,10 +67,15 @@ public class AudioManager : MonoBehaviour {
 	public void PlayHit()
 	{
 		AudioSource newSrc = gameObject.AddComponent<AudioSource>();
+		AudioSource newSrc1 = gameObject.AddComponent<AudioSource>();
 		newSrc.clip = hit;
+		newSrc1.clip = boing;
 		newSrc.loop = false;
+		newSrc1.loop = false;
 		newSrc.Play ();
+		newSrc1.Play ();
 		Playing.Add (newSrc);
+		Playing.Add (newSrc1);
 	}
 
 	public void PlayDeath()
@@ -102,6 +109,15 @@ public class AudioManager : MonoBehaviour {
 	{
 		AudioSource newSrc = gameObject.AddComponent<AudioSource>();
 		newSrc.clip = stretch;
+		newSrc.loop = false;
+		newSrc.Play ();
+		Playing.Add (newSrc);
+	}
+
+	public void PlayShowdown()
+	{
+		AudioSource newSrc = gameObject.AddComponent<AudioSource>();
+		newSrc.clip = showdown;
 		newSrc.loop = false;
 		newSrc.Play ();
 		Playing.Add (newSrc);
