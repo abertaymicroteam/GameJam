@@ -40,13 +40,17 @@ public class GameManager : MonoBehaviour
 	private bool playDrop = false;
 	public bool newTap = false;
 	private float timer = 3.0f;
-	private float shrinkTimer = 15.0f;
-	private bool shrunk = false;
-	private bool borderRed = false;
 	private bool winIncremented = false;
 	public float rotatormes;
 	#if !DISABLE_AIRCONSOLE 
 
+	// Play area shrinking
+	private float shrinkTimer = 15.0f;
+	private float showdownTimer = 5.0f;
+	private bool shrunk = false;
+	private bool showdown = false;
+	private bool borderRed = false;
+	private bool borderFlash = false;
 
 	//variables for update message
 	public float[] prevAngle;
@@ -86,60 +90,61 @@ public class GameManager : MonoBehaviour
 		// Randomise character order
 		ShuffleArray<int>(charNums);
 	}
+
 	/// <summary>
-	/// We start the game if 2 players are connected and the game is not already running (activePlayers == null).
 	/// 
-	/// NOTE: We store the controller device_ids of the active players. We do not hardcode player device_ids 1 and 2,
-	///       because the two controllers that are connected can have other device_ids e.g. 3 and 7.
-	///       For more information read: http://developers.airconsole.com/#/guides/device_ids_and_states
 	/// 
 	/// </summary>
 	/// <param name="device_id">The device_id that connected</param>
-
 	void OnConnect (int device_id) 
 	{
-		if ((GameState == STATE.MENU || GameState == STATE.READY) && connectedPlayers < 8) 
+		if (connectedPlayers < 8) 
 		{
-			// Set default spawn
-			SpawnLocation.Set(0, 0, 0);
+			if (GameState == STATE.MENU || GameState == STATE.READY)
+			{
+				// Set default spawn
+				SpawnLocation.Set (0, 0, 0);
 
-			// Assign character
-			//int character = RandomCharacter();
-			int character = charNums[connectedPlayers];
-			TakenCharacters[connectedPlayers] = character;
+				// Assign character
+				//int character = RandomCharacter();
+				int character = charNums [connectedPlayers];
+				TakenCharacters [connectedPlayers] = character;
 
-			// Create player
-			GameObject newPlayer = Instantiate(Characters[character], SpawnLocation, Quaternion.identity) as GameObject;
-			newPlayer.GetComponent<KnobMovement> ().characterNumber = character;
-			newPlayer.GetComponent<KnobMovement> ().SetID (connectedPlayers);
-			ID [connectedPlayers] = device_id;
-			Players.Add(newPlayer);
+				// Create player
+				GameObject newPlayer = Instantiate (Characters [character], SpawnLocation, Quaternion.identity) as GameObject;
+				newPlayer.GetComponent<KnobMovement> ().characterNumber = character;
+				newPlayer.GetComponent<KnobMovement> ().SetID (connectedPlayers);
+				ID [connectedPlayers] = device_id;
+				Players.Add (newPlayer);
 
-			// Add Menu Graphic
-			menu.ShowConnectGraphic(character, connectedPlayers);
+				// Add Menu Graphic
+				menu.ShowConnectGraphic (character, connectedPlayers);
 
-			// Increment connected players
-			connectedPlayers++;
+				// Increment connected players
+				connectedPlayers++;
 
-			// Send connection message to controller
-			JObject connectionMessage = new JObject ();
-			connectionMessage.Add ("state", (int)GameState);
-			connectionMessage.Add ("angle", 0);
-			AirConsole.instance.Message(device_id, connectionMessage);
-			AirConsole.instance.SetActivePlayers (8);
+				// Send connection message to controller
+				JObject connectionMessage = new JObject ();
+				connectionMessage.Add ("state", (int)GameState);
+				connectionMessage.Add ("angle", 0);
+				AirConsole.instance.Message (device_id, connectionMessage);
+				AirConsole.instance.SetActivePlayers (8);
 
-			// Play connect sound
-			audioMan.PlayDrop();
+				// Play connect sound
+				audioMan.PlayDrop ();
 
-			// Is the game ready to play? (1 player connected)
-			if (AirConsole.instance.GetControllerDeviceIds ().Count > 0 ) 
-			{	
-				menu.HideTitle ();
-				ReadyToPlay ();
+				// Is the game ready to play? (2 player connected)
+				if (AirConsole.instance.GetControllerDeviceIds ().Count > 1) {	
+					menu.HideTitle ();
+					ReadyToPlay ();
+				} else {
+					//uiText.text =  AirConsole.instance.GetControllerDeviceIds ().Count  + " PLAYERS CONNECTED";
+				}
 			} 
 			else 
 			{
-				//uiText.text =  AirConsole.instance.GetControllerDeviceIds ().Count  + " PLAYERS CONNECTED";
+				// Wait for new round to add new player
+				StartCoroutine(SpawnPlayerInNewRound(device_id));
 			}
 		}
 	}
@@ -174,8 +179,9 @@ public class GameManager : MonoBehaviour
 			if (toRemove != -1)
 				TakenCharacters.Remove (toRemove);
 
-			// Remove player connect graphic from menu
+			// Remove player connect graphic and score from menu
 			menu.UpdateConnectGraphics(active_player);
+			menu.RemoveScore (Players [active_player].GetComponent<KnobMovement> ().characterNumber);
 
 			// Destroy game object and remove from list
 			Destroy(Players [active_player]);
@@ -205,6 +211,7 @@ public class GameManager : MonoBehaviour
 			int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber (device_id);
 			if (active_player != -1) 
 			{
+				Debug.Log ("Restart Tap");
 				restartTap = true;
 				GameState = STATE.GAME;
 			}
@@ -359,8 +366,11 @@ public class GameManager : MonoBehaviour
 				} 
 
 				// If pool is shrunk, return to original
-				if (shrunk) {
+				if (shrunk) 
+				{
 					shrunk = false;
+					showdown = false;
+					borderFlash = false;
 					int time = 2; // Seconds
 					Vector3 borderDest = new Vector3 (0.9262f, 0.93f, 0.9279742f);
 					Vector3 boundaryDest = new Vector3 (1.0f, 1.0f, 1.0f);
@@ -380,21 +390,25 @@ public class GameManager : MonoBehaviour
 
 
 				//Count down restart timer
-				if (timer > 0.0f) {
+				if (timer > 0.0f) 
+				{
 					timer -= Time.deltaTime;
 					//uiText.text = (int)timer + " seconds to restart";
 				} 
 				//When timer has reached zero restart the game when a player taps the screen
-				else {
+				else 
+				{
 					GameState = STATE.RESTART;
 
 					menu.ShowTapToRestart ();
-					if (!playDrop) {
+					if (!playDrop) 
+					{
 						audioMan.PlayDrop ();
 						playDrop = true;
 					}
 
-					if (restartTap) {
+					if (restartTap) 
+					{
 						// Reset bools
 						playWin = false;
 						playDrop = false;
@@ -411,13 +425,17 @@ public class GameManager : MonoBehaviour
 						timer = 3.0f;
 					}	
 				}
-			} else if (destroyedPlayers == connectedPlayers && connectedPlayers > 0) 
+			} 
+			else if (destroyedPlayers == connectedPlayers && connectedPlayers > 0) 
 			{
 				// Players have been crafty and all died, so restart
 				// If pool is shrunk, return to original
-				if (shrunk) {
+				if (shrunk) 
+				{
 					shrunk = false;
-					int time = 2; // Seconds
+					showdown = false;
+					borderFlash = false;
+					float time = 1.5f; // Seconds
 					Vector3 borderDest = new Vector3 (0.9262f, 0.93f, 0.9279742f);
 					Vector3 boundaryDest = new Vector3 (1.0f, 1.0f, 1.0f);
 					Vector3 scoresDest = new Vector3 (0.36841f, 0.36841f, 0.36841f);
@@ -500,6 +518,34 @@ public class GameManager : MonoBehaviour
 						shrunk = true;
 						shrinkTimer = 15.0f;
 					}
+				}
+
+				// If pool shrunk and only two players left, shrink again!
+				if (shrunk && (connectedPlayers - destroyedPlayers == 2) && showdownTimer > 0.0f && !showdown) 
+				{
+					showdownTimer -= Time.deltaTime;
+				}
+				if (!borderFlash && showdownTimer < 2.0f) 
+				{
+					borderFlash = true;
+					StartCoroutine(FlashBorder(0.5f, border.GetComponent<SpriteRenderer>()));
+				}
+				if (!showdown && showdownTimer < 0) 
+				{
+					// Shrink
+					float time = 3.0f; // Seconds
+					Vector3 borderDest = new Vector3 (0.5572687f, 0.5595551f, 0.5583362f);
+					Vector3 boundaryDest = new Vector3 (0.6485946f, 0.6485946f, 0.6485946f);
+					Vector3 scoresDest = new Vector3 (0.22f, 0.22f, 0.22f);
+					int camSize = 3;
+
+					audioMan.PlayShowdown ();
+					StartCoroutine (Resize (time, border, borderDest));
+					StartCoroutine (Resize (time, boundaries, boundaryDest));
+					StartCoroutine (ResizeCamera (time, cam, camSize));
+					StartCoroutine (Resize (time, scores, scoresDest));
+					showdown = true;
+					showdownTimer = 5.0f;
 				}
 			}
 
@@ -652,6 +698,86 @@ public class GameManager : MonoBehaviour
 		{
 			rend.color = Color.Lerp (currentColour, desiredColour, currTime / time);
 			currTime += Time.deltaTime;
+			yield return null;
+		}
+	}
+
+	private IEnumerator FlashBorder(float speed, SpriteRenderer rend)
+	{
+		float timer = speed;
+		bool fadeUp = false;
+
+		Color faded = new Color (rend.color.r, rend.color.g, rend.color.b, 0.3f);
+		Color normal = new Color (rend.color.r, rend.color.g, rend.color.b, rend.color.a);
+		
+		while(borderFlash)
+		{
+			if (!fadeUp) 
+			{
+				timer -= Time.deltaTime;
+				rend.color = Color.Lerp (faded, normal, timer / speed);
+				if (timer < 0) 
+				{
+					fadeUp = true;
+				}
+			}
+			else 
+			{
+				timer += Time.deltaTime;
+				rend.color = Color.Lerp (faded, normal, timer / speed);
+				if (timer > speed) 
+				{
+					fadeUp = false;
+				}
+			}
+			yield return null;
+		}
+	}
+
+	private IEnumerator SpawnPlayerInNewRound(int device_id)
+	{
+		while (GameState != STATE.RESTART) 
+		{
+			// Wait
+			yield return null;
+		}
+
+		if (GameState == STATE.RESTART)
+		{
+			// Set default spawn
+			SpawnLocation.Set (0, 0, 0);
+
+			// Assign character
+			//int character = RandomCharacter();
+			int character = charNums [connectedPlayers];
+			TakenCharacters [connectedPlayers] = character;
+
+			// Create player
+			GameObject newPlayer = Instantiate (Characters [character], SpawnLocation, Quaternion.identity) as GameObject;
+			newPlayer.GetComponent<KnobMovement> ().characterNumber = character;
+			newPlayer.GetComponent<KnobMovement> ().SetID (connectedPlayers);
+			ID [connectedPlayers] = device_id;
+			Players.Add (newPlayer);
+
+			// Add Menu Graphic
+			menu.AddConnectGraphic (character, connectedPlayers);
+			menu.AddScore (character, connectedPlayers);
+
+			// Increment connected and destroyed players
+			connectedPlayers++;
+			destroyedPlayers++;
+
+			// Send connection message to controller
+			JObject connectionMessage = new JObject ();
+			connectionMessage.Add ("state", (int)GameState);
+			connectionMessage.Add ("angle", 0);
+			AirConsole.instance.Message (device_id, connectionMessage);
+			AirConsole.instance.SetActivePlayers (8);
+
+			// Play connect sound
+			audioMan.PlayDrop ();
+
+			Debug.Log ("New Player Added");
 			yield return null;
 		}
 	}

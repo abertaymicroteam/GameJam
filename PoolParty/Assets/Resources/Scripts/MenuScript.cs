@@ -113,6 +113,15 @@ public class MenuScript : MonoBehaviour
 		ActiveGraphics.Add (newGraphic);
 	}
 
+	public void AddConnectGraphic(int character, int playerID)
+	{ 
+		// Adds graphic of connected player's character to list but does not display it (for players joining mid game)
+
+		GameObject newGraphic = Instantiate (CharacterGraphics [character], GraphicPositions [playerID], Quaternion.identity) as GameObject;
+		newGraphic.GetComponent<SpriteRenderer> ().enabled = false;
+		ActiveGraphics.Add (newGraphic);
+	}
+
 	public void UpdateConnectGraphics(int playerToRemove)
 	{
 		// Destroy and remove disconnected player's graphic
@@ -136,6 +145,45 @@ public class MenuScript : MonoBehaviour
 			}
 			newScore.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 			ActiveScores.Add (newScore);
+		}
+	}
+
+	public void AddScore(int character, int connectedPlayers)
+	{
+		GameObject newScore = Instantiate (CharacterScores [character], new Vector3(0.0f, 0.0f, 0.0f), Quaternion.identity) as GameObject;
+		newScore.transform.SetParent (canvas.transform);
+		newScore.transform.localPosition = ScorePositions [connectedPlayers];
+		if (character == 0) {
+			// Move phil right a bit..
+			newScore.transform.localPosition += new Vector3(1.0f, 0.0f, 0.0f);
+		}
+		newScore.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+		ActiveScores.Add (newScore);
+	}
+
+	public void RemoveScore(int character)
+	{
+		// Removes the score graphic of disconnected player and updates positions of remaining graphics
+		GameObject toDelete = new GameObject();
+		foreach (GameObject score in ActiveScores)
+		{
+			if (score.GetComponent<ScoreScript>().myCharacter == character)
+			{
+				toDelete = score;
+			}
+		}
+
+		if (toDelete != null) 
+		{
+			Destroy (toDelete);
+			ActiveScores.Remove (toDelete);
+			// Update all scores
+			foreach (GameObject score in ActiveScores) 
+			{
+				ScoreScript script = score.GetComponent<ScoreScript> ();
+				script.UpdateScore ();
+			}
+
 		}
 	}
 
