@@ -230,6 +230,7 @@
     <Compile Include="Assets\AirConsole\scripts\WebsocketListener.cs" />
     <Compile Include="Assets\PlayMovie.cs" />
     <Compile Include="Assets\Resources\Animations\Splash\Splash.cs" />
+    <Compile Include="Assets\Resources\Scripts\AbilityBarScript.cs" />
     <Compile Include="Assets\Resources\Scripts\AudioManager.cs" />
     <Compile Include="Assets\Resources\Scripts\BombScript.cs" />
     <Compile Include="Assets\Resources\Scripts\GameManager.cs" />

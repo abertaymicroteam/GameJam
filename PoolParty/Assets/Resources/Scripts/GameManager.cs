@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviour
 	private bool restartTap = false;
 	private bool playWin = false;
 	private bool playDrop = false;
-    private bool winner = false;
+    public bool winner = false;
 	public bool newTap = false;
 	private float timer = 3.0f;
 	private bool winIncremented = false;
@@ -46,12 +46,12 @@ public class GameManager : MonoBehaviour
 	#if !DISABLE_AIRCONSOLE 
 
 	// Play area shrinking
-	private float shrinkTimer = 15.0f;
-	private float showdownTimer = 5.0f;
-	private bool shrunk = false;
-	private bool showdown = false;
-	private bool borderRed = false;
-	private bool borderFlash = false;
+	public float shrinkTimer = 15.0f;
+	public float showdownTimer = 5.0f;
+	public bool shrunk = false;
+	public bool showdown = false;
+	public bool borderRed = false;
+	public bool borderFlash = false;
 
 	//variables for update message
 	public float[] prevAngle;
@@ -373,10 +373,15 @@ public class GameManager : MonoBehaviour
 				// If pool is shrunk, return to original
 				if (shrunk) 
 				{
-					shrunk = false;
-					showdown = false;
-					borderFlash = false;
-					int time = 2; // Seconds
+                    // Reset shrink values
+                    shrunk = false;
+                    showdown = false;
+                    borderFlash = false;
+                    showdownTimer = 5.0f;
+                    shrinkTimer = 15.0f;
+
+                    // Zoom out
+                    int time = 2; // Seconds
 					Vector3 borderDest = new Vector3 (0.9262f, 0.93f, 0.9279742f);
 					Vector3 boundaryDest = new Vector3 (1.0f, 1.0f, 1.0f);
 					Vector3 scoresDest = new Vector3 (0.36841f, 0.36841f, 0.36841f);
@@ -439,9 +444,14 @@ public class GameManager : MonoBehaviour
 				// If pool is shrunk, return to original
 				if (shrunk) 
 				{
+                    // Reset shrink values
 					shrunk = false;
 					showdown = false;
 					borderFlash = false;
+                    showdownTimer = 5.0f;
+                    shrinkTimer = 15.0f;
+                    
+                    // Zoom out
 					float time = 1.5f; // Seconds
 					Vector3 borderDest = new Vector3 (0.9262f, 0.93f, 0.9279742f);
 					Vector3 boundaryDest = new Vector3 (1.0f, 1.0f, 1.0f);

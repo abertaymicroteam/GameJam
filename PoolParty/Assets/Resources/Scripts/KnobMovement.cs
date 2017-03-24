@@ -10,6 +10,7 @@ public class KnobMovement : MonoBehaviour {
 	private GameManager gMan;
 	private AudioManager audioMan;
 
+    // Personal Attributes
 	public float force;
 	private float lastAngle;
 	public bool destroyMe;
@@ -18,6 +19,15 @@ public class KnobMovement : MonoBehaviour {
 	private SpriteRenderer ringRenderer;
 	public int characterNumber = 0;
 	private float tapTimer = 0;
+
+    // Ability charge
+    public const int CHARGE_FULL = 100;
+    public const int CHARGE_EMPTY = 1;
+    public int chargeLevel = CHARGE_EMPTY;
+    public int chargePerSec = 1;
+    public float chargeTimer = 1;
+    public int bumpBoost = 10;
+    public bool abilityAvailable = false;
 
 	// Collisions
 	private CircleCollider2D col;
@@ -77,11 +87,31 @@ public class KnobMovement : MonoBehaviour {
 	// Update is called once per frame
 	void FixedUpdate () 
 	{
-		// Increment timer
+		// Increment audio timer
 		tapTimer += Time.deltaTime;
 		if (audioTimer > 0) {
 			audioTimer -= Time.deltaTime;
 		}
+
+        // Increment charge timer
+        if (!gMan.winner)
+        {
+            if (chargeTimer > 0.0f && !abilityAvailable)
+            {
+                chargeTimer -= Time.deltaTime;
+            }
+            else
+            {
+                chargeLevel += chargePerSec;
+                chargeTimer = 1.0f;
+            }
+        }
+
+        if (chargeLevel > CHARGE_FULL)
+        {
+            abilityAvailable = true;
+            chargeLevel = CHARGE_FULL;
+        }
 
 		// Limit velocity
 		if (rigBody.velocity.magnitude > 15) 
@@ -230,6 +260,9 @@ public class KnobMovement : MonoBehaviour {
 					audioTimer = 0.5f;
 				}
 			}
+
+            // Boost charge timer for being involved in the fight!
+            chargeLevel += bumpBoost;
 		}
 	}
 
