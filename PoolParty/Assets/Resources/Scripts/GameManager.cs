@@ -38,6 +38,7 @@ public class GameManager : MonoBehaviour
 	private bool restartTap = false;
 	private bool playWin = false;
 	private bool playDrop = false;
+    public bool winner = false;
 	public bool newTap = false;
 	private float timer = 3.0f;
 	private bool winIncremented = false;
@@ -45,12 +46,12 @@ public class GameManager : MonoBehaviour
 	#if !DISABLE_AIRCONSOLE 
 
 	// Play area shrinking
-	private float shrinkTimer = 15.0f;
-	private float showdownTimer = 5.0f;
-	private bool shrunk = false;
-	private bool showdown = false;
-	private bool borderRed = false;
-	private bool borderFlash = false;
+	public float shrinkTimer = 15.0f;
+	public float showdownTimer = 5.0f;
+	public bool shrunk = false;
+	public bool showdown = false;
+	public bool borderRed = false;
+	public bool borderFlash = false;
 
 	//variables for update message
 	public float[] prevAngle;
@@ -362,7 +363,11 @@ public class GameManager : MonoBehaviour
 		if (GameState == STATE.GAME) 
 		{
 			// Check if there is a winner yet
-			if (destroyedPlayers == (connectedPlayers - 1) && destroyedPlayers > 0) {
+			if (destroyedPlayers == (connectedPlayers - 1) && destroyedPlayers > 0)
+            {
+                // Set winner bool
+                winner = true;
+
 				// Get player ID
 				int winningPlayer = -1;
 				foreach (GameObject player in Players) {
@@ -402,21 +407,27 @@ public class GameManager : MonoBehaviour
 				// If pool is shrunk, return to original
 				if (shrunk) 
 				{
-					shrunk = false;
-					showdown = false;
-					borderFlash = false;
-					int time = 2; // Seconds
+                    // Reset shrink values
+                    shrunk = false;
+                    showdown = false;
+                    borderFlash = false;
+                    showdownTimer = 5.0f;
+                    shrinkTimer = 15.0f;
+
+                    // Zoom out
+                    int time = 2; // Seconds
 					Vector3 borderDest = new Vector3 (0.9262f, 0.93f, 0.9279742f);
 					Vector3 boundaryDest = new Vector3 (1.0f, 1.0f, 1.0f);
 					Vector3 scoresDest = new Vector3 (0.36841f, 0.36841f, 0.36841f);
 					int camSize = 5;
 
-					StartCoroutine (Resize (time, border, borderDest));
-					StartCoroutine (Resize (time, boundaries, boundaryDest));
-					StartCoroutine (Resize (time, scores, scoresDest));
-					StartCoroutine (ResizeCamera (time, cam, camSize));
+					StartCoroutine (ResizeUp (time, border, borderDest));
+					StartCoroutine (ResizeUp (time, boundaries, boundaryDest));
+					StartCoroutine (ResizeUp (time, scores, scoresDest));
+					StartCoroutine (ResizeCameraUp (time, cam, camSize));
 				}
-				if (borderRed) {
+				if (borderRed)
+                {
 					borderRed = false;
 					Color blue = new Color (56.0f / 255.0f, 58.0f / 255.0f, 1.0f, 194.0f / 255.0f);
 					StartCoroutine (FadeColour (2.0f, border.GetComponent<SpriteRenderer> (), blue));
@@ -448,6 +459,7 @@ public class GameManager : MonoBehaviour
 						playDrop = false;
 						winIncremented = false;
 						restartTap = false;
+                        winner = false;
 
 						// Update Menu
 						menu.HideWinner ();
@@ -466,21 +478,27 @@ public class GameManager : MonoBehaviour
 				// If pool is shrunk, return to original
 				if (shrunk) 
 				{
+                    // Reset shrink values
 					shrunk = false;
 					showdown = false;
 					borderFlash = false;
+                    showdownTimer = 5.0f;
+                    shrinkTimer = 15.0f;
+                    
+                    // Zoom out
 					float time = 1.5f; // Seconds
 					Vector3 borderDest = new Vector3 (0.9262f, 0.93f, 0.9279742f);
 					Vector3 boundaryDest = new Vector3 (1.0f, 1.0f, 1.0f);
 					Vector3 scoresDest = new Vector3 (0.36841f, 0.36841f, 0.36841f);
 					int camSize = 5;
 
-					StartCoroutine (Resize (time, border, borderDest));
-					StartCoroutine (Resize (time, boundaries, boundaryDest));
-					StartCoroutine (Resize (time, scores, scoresDest));
-					StartCoroutine (ResizeCamera (time, cam, camSize));
+					StartCoroutine (ResizeUp (time, border, borderDest));
+					StartCoroutine (ResizeUp (time, boundaries, boundaryDest));
+					StartCoroutine (ResizeUp (time, scores, scoresDest));
+					StartCoroutine (ResizeCameraUp (time, cam, camSize));
 				}
-				if (borderRed) {
+				if (borderRed)
+                {
 					borderRed = false;
 					Color blue = new Color (56.0f / 255.0f, 58.0f / 255.0f, 1.0f, 194.0f / 255.0f);
 					StartCoroutine (FadeColour (2.0f, border.GetComponent<SpriteRenderer> (), blue));
@@ -508,6 +526,7 @@ public class GameManager : MonoBehaviour
 						playDrop = false;
 						winIncremented = false;
 						restartTap = false;
+                        winner = false;
 
 						// Update Menu
 						menu.HideWinner ();
@@ -545,10 +564,10 @@ public class GameManager : MonoBehaviour
 						int camSize = 4;
 
 						audioMan.PlayStretch ();
-						StartCoroutine (Resize (time, border, borderDest));
-						StartCoroutine (Resize (time, boundaries, boundaryDest));
-						StartCoroutine (ResizeCamera (time, cam, camSize));
-						StartCoroutine (Resize (time, scores, scoresDest));
+						StartCoroutine (ResizeDown (time, border, borderDest));
+						StartCoroutine (ResizeDown (time, boundaries, boundaryDest));
+						StartCoroutine (ResizeCameraDown (time, cam, camSize));
+						StartCoroutine (ResizeDown (time, scores, scoresDest));
 						shrunk = true;
 						shrinkTimer = 15.0f;
 					}
@@ -574,10 +593,10 @@ public class GameManager : MonoBehaviour
 					int camSize = 3;
 
 					audioMan.PlayShowdown ();
-					StartCoroutine (Resize (time, border, borderDest));
-					StartCoroutine (Resize (time, boundaries, boundaryDest));
-					StartCoroutine (ResizeCamera (time, cam, camSize));
-					StartCoroutine (Resize (time, scores, scoresDest));
+					StartCoroutine (ResizeDown (time, border, borderDest));
+					StartCoroutine (ResizeDown (time, boundaries, boundaryDest));
+					StartCoroutine (ResizeCameraDown (time, cam, camSize));
+					StartCoroutine (ResizeDown (time, scores, scoresDest));
 					showdown = true;
 					showdownTimer = 5.0f;
 				}
@@ -694,13 +713,13 @@ public class GameManager : MonoBehaviour
 		return returnIndex;
 	}
 
-	private IEnumerator Resize(float time, GameObject obj, Vector3 desiredScale)
+	private IEnumerator ResizeDown(float time, GameObject obj, Vector3 desiredScale)
 	{
 		Vector3 currentScale = obj.transform.localScale;
 
 		float currTime = 0.0f;
 
-		while (currTime <= time)
+		while (currTime <= time && !winner)
 		{
 			obj.transform.localScale = Vector3.Lerp (currentScale, desiredScale, currTime / time);
 			currTime += Time.deltaTime;
@@ -708,7 +727,21 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	private IEnumerator ResizeCamera(float time, Camera cam, float desiredSize)
+    private IEnumerator ResizeUp(float time, GameObject obj, Vector3 desiredScale)
+    {
+        Vector3 currentScale = obj.transform.localScale;
+
+        float currTime = 0.0f;
+
+        while (currTime <= time)
+        {
+            obj.transform.localScale = Vector3.Lerp(currentScale, desiredScale, currTime / time);
+            currTime += Time.deltaTime;
+            yield return null;
+        }
+    }
+
+    private IEnumerator ResizeCameraUp(float time, Camera cam, float desiredSize)
 	{
 		float currentSize = cam.orthographicSize;
 
@@ -722,7 +755,21 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	private IEnumerator FadeColour(float time, SpriteRenderer rend, Color desiredColour)
+    private IEnumerator ResizeCameraDown(float time, Camera cam, float desiredSize)
+    {
+        float currentSize = cam.orthographicSize;
+
+        float currTime = 0.0f;
+
+        while (currTime <= time && !winner)
+        {
+            cam.orthographicSize = Mathf.Lerp(currentSize, desiredSize, currTime / time);
+            currTime += Time.deltaTime;
+            yield return null;
+        }
+    }
+
+    private IEnumerator FadeColour(float time, SpriteRenderer rend, Color desiredColour)
 	{
 		Color currentColour = rend.color;
 
