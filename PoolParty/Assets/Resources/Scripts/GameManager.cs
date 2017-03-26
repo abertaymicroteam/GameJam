@@ -26,7 +26,7 @@ public class GameManager : MonoBehaviour
 	public List<GameObject> Players;
 	public GameObject[] Characters;
 	public List<int> TakenCharacters;
-	private int[] charNums = new int[8] {0, 1, 2, 3, 4, 5, 6, 7};
+	private int[] charNums = new int[8] {6, 1, 2, 3, 4, 5, 6, 7};
 	private float angle = 0.0f;
 	public float[] angles;
 	public int[] ID;
@@ -89,7 +89,7 @@ public class GameManager : MonoBehaviour
 		scores = GameObject.FindGameObjectWithTag ("Scores");
 
 		// Randomise character order
-		ShuffleArray<int>(charNums);
+		//ShuffleArray<int>(charNums);
 	}
 
 	/// <summary>
@@ -219,41 +219,41 @@ public class GameManager : MonoBehaviour
 		} 
 		else if (GameState == STATE.READY) 
 		{
-			//StartGame ();
+			StartGame ();
 
 			// Change character
-			int playerNumber = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
-			if (playerNumber != -1)
-			{
-				// Get current character information
-				GameObject currentPlayer = Players [playerNumber];
-				int currCharacter = currentPlayer.GetComponent<KnobMovement> ().characterNumber;
-				int newCharacter = -1;
-				if (currCharacter < 7)
-				{
-					newCharacter = currCharacter + 1;
-				}
-				else
-				{
-					newCharacter = 0;
-				}
-
-				// Create new player
-				GameObject newPlayer = Instantiate (Characters [newCharacter], SpawnLocation, Quaternion.identity) as GameObject;
-				newPlayer.GetComponent<KnobMovement> ().characterNumber = newCharacter;
-				newPlayer.GetComponent<KnobMovement> ().SetID (playerNumber);
-				//ID [playerNumber] = device_id;
-				Players[playerNumber] = newPlayer;
-
-				// Destroy old player object
-				Destroy(currentPlayer);	
-
-				// Update Menu Graphic
-				menu.UpdateConnectGraphic(playerNumber, newCharacter);
-
-				// Play sound
-				audioMan.PlayDrop();
-			}
+			//int playerNumber = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
+			//if (playerNumber != -1)
+			//{
+			//	// Get current character information
+			//	GameObject currentPlayer = Players [playerNumber];
+			//	int currCharacter = currentPlayer.GetComponent<KnobMovement> ().characterNumber;
+			//	int newCharacter = -1;
+			//	if (currCharacter < 7)
+			//	{
+			//		newCharacter = currCharacter + 1;
+			//	}
+			//	else
+			//	{
+			//		newCharacter = 0;
+			//	}
+			//
+			//	// Create new player
+			//	GameObject newPlayer = Instantiate (Characters [newCharacter], SpawnLocation, Quaternion.identity) as GameObject;
+			//	newPlayer.GetComponent<KnobMovement> ().characterNumber = newCharacter;
+			//	newPlayer.GetComponent<KnobMovement> ().SetID (playerNumber);
+			//	//ID [playerNumber] = device_id;
+			//	Players[playerNumber] = newPlayer;
+			//
+			//	// Destroy old player object
+			//	Destroy(currentPlayer);	
+			//
+			//	// Update Menu Graphic
+			//	menu.UpdateConnectGraphic(playerNumber, newCharacter);
+			//
+			//	// Play sound
+			//	audioMan.PlayDrop();
+			//}
 		}
 		else
 		{			
