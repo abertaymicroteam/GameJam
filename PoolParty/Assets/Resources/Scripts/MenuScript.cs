@@ -116,17 +116,25 @@ public class MenuScript : MonoBehaviour
 	public void AddConnectGraphic(int character, int playerID)
 	{ 
 		// Adds graphic of connected player's character to list but does not display it (for players joining mid game)
-
 		GameObject newGraphic = Instantiate (CharacterGraphics [character], GraphicPositions [playerID], Quaternion.identity) as GameObject;
 		newGraphic.GetComponent<SpriteRenderer> ().enabled = false;
 		ActiveGraphics.Add (newGraphic);
 	}
 
-	public void UpdateConnectGraphics(int playerToRemove)
+	public void RemoveConnectGraphic(int playerToRemove)
 	{
 		// Destroy and remove disconnected player's graphic
 		Destroy(ActiveGraphics[playerToRemove]);
 		ActiveGraphics.Remove (ActiveGraphics [playerToRemove]);
+	}
+
+	public void UpdateConnectGraphic(int playerNumber, int character)
+	{
+		// Updates player's graphic to new character for character selection
+		Destroy(ActiveGraphics[playerNumber]);
+		ActiveGraphics.Remove (ActiveGraphics [playerNumber]);
+		GameObject newGraphic = Instantiate (CharacterGraphics [character], GraphicPositions [playerNumber], Quaternion.identity) as GameObject;
+		ActiveGraphics.Add (newGraphic);
 	}
 
 	public void ShowScores()
