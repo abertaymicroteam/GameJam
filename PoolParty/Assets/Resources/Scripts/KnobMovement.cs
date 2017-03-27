@@ -102,7 +102,11 @@ public class KnobMovement : MonoBehaviour {
             }
             else
             {
-                chargeLevel += chargePerSec;
+				if (gMan.GameState == GameManager.STATE.GAME)
+				{
+					// Only charge when game is active
+					chargeLevel += chargePerSec;
+				}
                 chargeTimer = 1.0f;
             }
         }

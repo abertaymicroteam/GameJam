@@ -8,7 +8,8 @@ public class ScoreScript : MonoBehaviour {
 	public int wins;
 	private Text myText;
 	private GameManager gMan;
-	private SpriteRenderer headRenderer;
+	private SpriteRenderer[] renderers;
+	private AbilityBarScript abilityScript;
 
 	// Move attributes
 	private int moveDuration = 2;
@@ -20,7 +21,8 @@ public class ScoreScript : MonoBehaviour {
 	{
 		myText = gameObject.GetComponent<Text> ();
 		gMan = FindObjectOfType<GameManager> ();
-		headRenderer = gameObject.GetComponentInChildren<SpriteRenderer> ();
+		renderers = gameObject.GetComponentsInChildren<SpriteRenderer> ();
+		abilityScript = gameObject.GetComponentInChildren<AbilityBarScript> ();
 	}
 	
 	// Update is called once per frame
@@ -46,13 +48,21 @@ public class ScoreScript : MonoBehaviour {
 	public void FadeOut()
 	{
 		myText.color = new Vector4(myText.color.r, myText.color.g, myText.color.b, 0.2f);
-		headRenderer.color = new Vector4(headRenderer.color.r, headRenderer.color.g, headRenderer.color.b, 0.2f);
+		foreach(SpriteRenderer renderer in renderers)
+		{			
+			renderer.color = new Vector4 (renderer.color.r, renderer.color.g, renderer.color.b, 0.2f);
+		}
+		abilityScript.maxAlpha = 0.2f;
 	}
 
 	public void FadeIn()
 	{
 		myText.color = new Vector4(myText.color.r, myText.color.g, myText.color.b, 1.0f);
-		headRenderer.color = new Vector4(headRenderer.color.r, headRenderer.color.g, headRenderer.color.b, 1.0f);
+		foreach(SpriteRenderer renderer in renderers)
+		{			
+			renderer.color = new Vector4 (renderer.color.r, renderer.color.g, renderer.color.b, 1.0f);
+		}
+		abilityScript.maxAlpha = 1.0f;
 	}
 
 	public void Move(float Xposition)

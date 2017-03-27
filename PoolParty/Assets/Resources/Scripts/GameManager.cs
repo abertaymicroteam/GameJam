@@ -26,7 +26,7 @@ public class GameManager : MonoBehaviour
 	public List<GameObject> Players;
 	public GameObject[] Characters;
 	public List<int> TakenCharacters;
-	private int[] charNums = new int[8] {0, 1, 2, 3, 4, 5, 6, 7};
+	private int[] charNums = new int[8] {6, 1, 2, 3, 4, 5, 6, 7};
 	private float angle = 0.0f;
 	public float[] angles;
 	public int[] ID;
@@ -89,7 +89,7 @@ public class GameManager : MonoBehaviour
 		scores = GameObject.FindGameObjectWithTag ("Scores");
 
 		// Randomise character order
-		ShuffleArray<int>(charNums);
+		//ShuffleArray<int>(charNums);
 	}
 
 	/// <summary>
@@ -135,7 +135,7 @@ public class GameManager : MonoBehaviour
 				audioMan.PlayDrop ();
 
 				// Is the game ready to play? (2 player connected)
-				if (AirConsole.instance.GetControllerDeviceIds ().Count > 1) {	
+				if (AirConsole.instance.GetControllerDeviceIds ().Count > 0) {	
 					menu.HideTitle ();
 					ReadyToPlay ();
 				} else {
@@ -181,7 +181,7 @@ public class GameManager : MonoBehaviour
 				TakenCharacters.Remove (toRemove);
 
 			// Remove player connect graphic and score from menu
-			menu.UpdateConnectGraphics(active_player);
+			menu.RemoveConnectGraphic(active_player);
 			menu.RemoveScore (Players [active_player].GetComponent<KnobMovement> ().characterNumber);
 
 			// Destroy game object and remove from list
@@ -220,6 +220,40 @@ public class GameManager : MonoBehaviour
 		else if (GameState == STATE.READY) 
 		{
 			StartGame ();
+
+			// Change character
+			//int playerNumber = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
+			//if (playerNumber != -1)
+			//{
+			//	// Get current character information
+			//	GameObject currentPlayer = Players [playerNumber];
+			//	int currCharacter = currentPlayer.GetComponent<KnobMovement> ().characterNumber;
+			//	int newCharacter = -1;
+			//	if (currCharacter < 7)
+			//	{
+			//		newCharacter = currCharacter + 1;
+			//	}
+			//	else
+			//	{
+			//		newCharacter = 0;
+			//	}
+			//
+			//	// Create new player
+			//	GameObject newPlayer = Instantiate (Characters [newCharacter], SpawnLocation, Quaternion.identity) as GameObject;
+			//	newPlayer.GetComponent<KnobMovement> ().characterNumber = newCharacter;
+			//	newPlayer.GetComponent<KnobMovement> ().SetID (playerNumber);
+			//	//ID [playerNumber] = device_id;
+			//	Players[playerNumber] = newPlayer;
+			//
+			//	// Destroy old player object
+			//	Destroy(currentPlayer);	
+			//
+			//	// Update Menu Graphic
+			//	menu.UpdateConnectGraphic(playerNumber, newCharacter);
+			//
+			//	// Play sound
+			//	audioMan.PlayDrop();
+			//}
 		}
 		else
 		{			
@@ -245,7 +279,7 @@ public class GameManager : MonoBehaviour
 					angle = 360 - angle;
 				}
 
-				//store iformation on where to spawn splash
+				//store information on where to spawn splash
 				int it = 0;
 				foreach(int i in ID)
 				{
