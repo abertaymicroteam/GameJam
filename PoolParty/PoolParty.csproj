@@ -234,6 +234,7 @@
     <Compile Include="Assets\Resources\Scripts\AudioManager.cs" />
     <Compile Include="Assets\Resources\Scripts\BombScript.cs" />
     <Compile Include="Assets\Resources\Scripts\GameManager.cs" />
+    <Compile Include="Assets\Resources\Scripts\JugScript.cs" />
     <Compile Include="Assets\Resources\Scripts\KnobMovement.cs" />
     <Compile Include="Assets\Resources\Scripts\LevelManager.cs" />
     <Compile Include="Assets\Resources\Scripts\MenuScript.cs" />
