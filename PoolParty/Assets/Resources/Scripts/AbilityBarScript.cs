@@ -5,6 +5,7 @@ public class AbilityBarScript : MonoBehaviour
 {
     // Object references 
     private KnobMovement playerScript;
+    private GameManager gMan;
     private SpriteRenderer[] renderers;
 
 	// Private attributes
@@ -12,23 +13,28 @@ public class AbilityBarScript : MonoBehaviour
 
 	// Public attributes
 	public float maxAlpha = 1.0f;
+    public int myCharacter = 0;
 
 	// Use this for initialization
 	void Start ()
     {
-        playerScript = GameObject.Find("Mike(Clone)").GetComponent<KnobMovement>();
+        // Get game manager script and player script for this character
+        gMan = GameObject.FindObjectOfType<GameManager>();
+        foreach (GameObject player in gMan.Players)
+        {
+            KnobMovement script = player.GetComponent<KnobMovement>();
+            if (script.characterNumber == myCharacter)
+            {
+                playerScript = script;
+            }
+        }
 	}
 	
 	// Update is called once per frame
 	void Update ()
     {
-        if (!playerScript)
-        {
-            playerScript = GameObject.Find("Mike(Clone)").GetComponent<KnobMovement>();
-        }
-
         // Scale sprite based on ability metre
-		transform.localScale =  new Vector3 (Mathf.Lerp(0.0f, 42.16f, playerScript.chargeLevel / 100.0f), transform.localScale.y, transform.localScale.z);
+		transform.localScale =  new Vector3 (Mathf.Lerp(3.0f, 42.16f, playerScript.chargeLevel / 100.0f), transform.localScale.y, transform.localScale.z);
 
         // Turn on flash when at 100
 		if (playerScript.chargeLevel >= 100 && flashing == false)
@@ -44,13 +50,31 @@ public class AbilityBarScript : MonoBehaviour
 			}
 			if (flash != null) 
 			{
-				Debug.Log ("Flash");
 				flash.enabled = true;
 				flashing = true;
 				StartCoroutine (Flash (0.5f, flash));
 			}
         }
-	}
+
+        // Turn off flash once ability used
+        if (playerScript.chargeLevel < 100 && flashing == true)
+        {
+            renderers = gameObject.GetComponentsInChildren<SpriteRenderer>();
+            SpriteRenderer flash = GetComponent<SpriteRenderer>();
+            foreach (SpriteRenderer rend in renderers)
+            {
+                if (rend.transform.parent != null)
+                { // Get child component, not my component
+                    flash = rend;
+                }
+            }
+            if (flash != null)
+            {
+                flash.enabled = false;
+                flashing = false;
+            }
+        }
+    }
 
 	private IEnumerator Flash(float speed, SpriteRenderer rend)
 	{

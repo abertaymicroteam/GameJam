@@ -11,6 +11,7 @@ public class KnobMovement : MonoBehaviour {
 	private AudioManager audioMan;
 
     // Personal Attributes
+    public GameObject ability;
 	public float force;
 	private float lastAngle;
 	public bool destroyMe;
@@ -26,15 +27,17 @@ public class KnobMovement : MonoBehaviour {
     public int chargeLevel = CHARGE_EMPTY;
     public int chargePerSec = 1;
     public float chargeTimer = 1;
-    public int bumpBoost = 10;
+    public int bumpBoost = 2;
+    public int killBoost = 10;
     public bool abilityAvailable = false;
 
 	// Collisions
 	private CircleCollider2D col;
 	private List<Collider2D> currentColliders = new List<Collider2D>();
 	private bool colliding;
+    private Collision2D lastCollision;
 
-	// limiting velocity
+	// Limiting velocity
 	private float startDrag;
 	private float dragTimer = 1.0f;
 	private bool drag = false;
@@ -158,6 +161,18 @@ public class KnobMovement : MonoBehaviour {
 			// Reset timer
 			tapTimer = 0;
 		}
+
+        // Spawn ability when ready
+        if (abilityAvailable && gMan.GameState == GameManager.STATE.GAME)
+        {
+            //GameObject newAbility = Instantiate(ability, gameObject.transform, false) as GameObject;
+            //if (newAbility.GetComponent<BombScript>() != null)
+            //{
+            //    newAbility.GetComponent<BombScript>().SetOwner(gameObject.GetInstanceID());
+            //}
+            //abilityAvailable = false;
+            //chargeLevel = CHARGE_EMPTY;
+        }
 	}
 
 	Vector2 CirclePos(Vector2 centre, float radius, float angle)
@@ -184,7 +199,7 @@ public class KnobMovement : MonoBehaviour {
 		}
 		else if (other.tag != "PowerUp")
 		{
-			// Hide sprite and disable collisions
+			// Dead. Hide sprite and disable collisions
 			ringRenderer.enabled = false;
 			col.enabled = false;
 			rigBody.velocity.Set (0, 0);
@@ -200,6 +215,10 @@ public class KnobMovement : MonoBehaviour {
 				}
 				colliding = false;
 			}
+
+            // Add bonus to player that killed you
+            if (lastCollision != null)
+            lastCollision.gameObject.GetComponent<KnobMovement>().chargeLevel += killBoost;
 			
 			// Play death sound
 			audioMan.PlayDeath();
@@ -267,6 +286,18 @@ public class KnobMovement : MonoBehaviour {
 
             // Boost charge timer for being involved in the fight!
             chargeLevel += bumpBoost;
+
+            // Store last collision for kill reward
+            lastCollision = collision;
+
+            // Check for current power up
+            if(GetComponentInChildren<JugScript>() != null)
+            {
+                // Bounce attacker off
+                Vector3 direction = collision.transform.position - transform.position;
+                direction.Normalize();
+                collision.rigidbody.AddForce(direction * 50.0f, ForceMode2D.Impulse);
+            }
 		}
 	}
 

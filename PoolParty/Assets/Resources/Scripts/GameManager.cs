@@ -24,9 +24,10 @@ public class GameManager : MonoBehaviour
 	// Players
 	public Vector3 SpawnLocation;
 	public List<GameObject> Players;
+    public List<GameObject> Abilities;
 	public GameObject[] Characters;
 	public List<int> TakenCharacters;
-	private int[] charNums = new int[8] {6, 1, 2, 3, 4, 5, 6, 7};
+	private int[] charNums = new int[8] {0, 1, 2, 3, 4, 5, 6, 7};
 	private float angle = 0.0f;
 	public float[] angles;
 	public int[] ID;
@@ -89,7 +90,7 @@ public class GameManager : MonoBehaviour
 		scores = GameObject.FindGameObjectWithTag ("Scores");
 
 		// Randomise character order
-		//ShuffleArray<int>(charNums);
+		ShuffleArray<int>(charNums);
 	}
 
 	/// <summary>
@@ -113,8 +114,10 @@ public class GameManager : MonoBehaviour
 
 				// Create player
 				GameObject newPlayer = Instantiate (Characters [character], SpawnLocation, Quaternion.identity) as GameObject;
-				newPlayer.GetComponent<KnobMovement> ().characterNumber = character;
-				newPlayer.GetComponent<KnobMovement> ().SetID (connectedPlayers);
+                KnobMovement newScript = newPlayer.GetComponent<KnobMovement>();
+				newScript.characterNumber = character;
+				newScript.SetID (connectedPlayers);
+                newScript.ability = Abilities[Random.Range(0, 2)];
 				ID [connectedPlayers] = device_id;
 				Players.Add (newPlayer);
 
@@ -135,7 +138,7 @@ public class GameManager : MonoBehaviour
 				audioMan.PlayDrop ();
 
 				// Is the game ready to play? (2 player connected)
-				if (AirConsole.instance.GetControllerDeviceIds ().Count > 0) {	
+				if (AirConsole.instance.GetControllerDeviceIds ().Count > 1) {	
 					menu.HideTitle ();
 					ReadyToPlay ();
 				} else {
@@ -212,7 +215,6 @@ public class GameManager : MonoBehaviour
 			int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber (device_id);
 			if (active_player != -1) 
 			{
-				Debug.Log ("Restart Tap");
 				restartTap = true;
 				GameState = STATE.GAME;
 			}

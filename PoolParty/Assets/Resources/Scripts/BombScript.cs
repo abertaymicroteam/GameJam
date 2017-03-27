@@ -12,18 +12,23 @@ public class BombScript : MonoBehaviour
 	// Attributes
 	public int owner = 0; // The InstanceID of the player who this ability belongs to
 	private bool activated = false; // Is the bomb armed
+    Vector3 spawnPos;
 
 	// Use this for initialization
 	void Start () 
 	{
 		// Get game manager for access to Player List
 		gMan =  (GameManager)FindObjectOfType<GameManager>();
+
+        // De-parent the object
+        transform.parent = null;
+        transform.localScale = new Vector3(2.5f, 2.5f, 2.5f);
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
-		
+
 	}
 
 	// Sets owner of this ability (Instance ID)
@@ -34,42 +39,53 @@ public class BombScript : MonoBehaviour
 
 	void OnTriggerEnter2D(Collider2D collider)
 	{
-		// Get direction from centre of bomb to collider point
-		Vector3 direction = collider.gameObject.transform.position - transform.position;
-		direction.Normalize ();
+        if (activated)
+        {
+            // Get direction from centre of bomb to collider point
+            Vector3 direction = collider.gameObject.transform.position - transform.position;
+            direction.Normalize();
 
-		// Define force of explosion
-		float force = 100.0f;
-		float maxDistance = 7.5f; // The distance within which to apply explosive force
+            // Define force of explosion
+            float force = 100.0f;
+            float maxDistance = 7.5f; // The distance within which to apply explosive force
 
-		// Send player flying!
-		collider.attachedRigidbody.AddForce(direction * force, ForceMode2D.Impulse);
+            // Send player flying!
+            collider.attachedRigidbody.AddForce(direction * force, ForceMode2D.Impulse);
 
-		// Add impulse to other nearby players based on distance
-		foreach (GameObject player in gMan.Players) 
-		{
-			// Get direction from centre of bomb to player position
-			Vector3 newDir = player.transform.position - transform.position;
-			float distance = newDir.magnitude;
+            // Add impulse to other nearby players based on distance
+            foreach (GameObject player in gMan.Players)
+            {
+                // Get direction from centre of bomb to player position
+                Vector3 newDir = player.transform.position - transform.position;
+                float distance = newDir.magnitude;
 
-			// Check distance and that this player is not colliding player
-			if (distance < maxDistance && player.GetInstanceID() != collider.gameObject.GetInstanceID())
-			{
-				// Normalise distance vector
-				newDir.Normalize();
-				
-				// Define magnitude of explosion
-				float minMag = 1; float maxMag = force;
+                // Check distance and that this player is not colliding player
+                if (distance < maxDistance && player.GetInstanceID() != collider.gameObject.GetInstanceID())
+                {
+                    // Normalise distance vector
+                    newDir.Normalize();
 
-				// Work out force based on distance
-				Vector3 Force = Vector3.Lerp(newDir * maxMag, newDir * minMag, distance / maxDistance);
+                    // Define magnitude of explosion
+                    float minMag = 1; float maxMag = force;
 
-				// Send player flying!
-				player.GetComponent<Rigidbody2D>().AddForce(Force, ForceMode2D.Impulse);
-			}
-		}
+                    // Work out force based on distance
+                    Vector3 Force = Vector3.Lerp(newDir * maxMag, newDir * minMag, distance / maxDistance);
 
-		// Destroy bomb
-		Destroy(gameObject);
+                    // Send player flying!
+                    player.GetComponent<Rigidbody2D>().AddForce(Force, ForceMode2D.Impulse);
+                }
+            }
+
+            // Destroy bomb
+            Destroy(gameObject);
+        }		
 	}
+
+    private void OnTriggerExit2D(Collider2D collider)
+    {
+        if (collider.gameObject.GetInstanceID() == owner && !activated)
+        {
+            activated = true;
+        }
+    }
 }
