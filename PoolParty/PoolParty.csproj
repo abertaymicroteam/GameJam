@@ -233,6 +233,7 @@
     <Compile Include="Assets\Resources\Scripts\AbilityBarScript.cs" />
     <Compile Include="Assets\Resources\Scripts\AudioManager.cs" />
     <Compile Include="Assets\Resources\Scripts\BombScript.cs" />
+    <Compile Include="Assets\Resources\Scripts\ChargeScript.cs" />
     <Compile Include="Assets\Resources\Scripts\GameManager.cs" />
     <Compile Include="Assets\Resources\Scripts\JugScript.cs" />
     <Compile Include="Assets\Resources\Scripts\KnobMovement.cs" />
