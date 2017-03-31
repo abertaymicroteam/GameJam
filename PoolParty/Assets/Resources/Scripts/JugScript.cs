@@ -26,7 +26,7 @@ public class JugScript : MonoBehaviour
         defaultDrag = myPlayerScript.rigBody.drag;
         defaultScale = myPlayerScript.gameObject.transform.localScale;
         myPlayerScript.rigBody.drag = 15.0f;
-        myPlayerScript.gameObject.transform.localScale *= 1.25f;
+        //myPlayerScript.gameObject.transform.localScale *= 1.25f;
 	}
 	
 	// Update is called once per frame

@@ -160,6 +160,8 @@ public class KnobMovement : MonoBehaviour {
             {
                 // Do charge boost instead
                 GetComponentInChildren<ChargeScript>().direction = direction;
+                GetComponentInChildren<ChargeScript>().angle = gMan.getAngle(playerID);
+                Debug.Log("Rotation " + gMan.getAngle(playerID));
                 GetComponentInChildren<ChargeScript>().fire = true;
                 chargeAbilityReady = false;
 
@@ -179,13 +181,13 @@ public class KnobMovement : MonoBehaviour {
         // Spawn ability when ready
         if (abilityAvailable && gMan.GameState == GameManager.STATE.GAME)
         {
-            //GameObject newAbility = Instantiate(ability, gameObject.transform, false) as GameObject;
-            //if (newAbility.GetComponent<BombScript>() != null)
-            //{
-            //    newAbility.GetComponent<BombScript>().SetOwner(gameObject.GetInstanceID());
-            //}
-            //abilityAvailable = false;
-            //chargeLevel = CHARGE_EMPTY;
+            GameObject newAbility = Instantiate(ability, gameObject.transform, false) as GameObject;
+            if (newAbility.GetComponent<BombScript>() != null)
+            {
+                newAbility.GetComponent<BombScript>().SetOwner(gameObject.GetInstanceID());
+            }
+            abilityAvailable = false;
+            chargeLevel = CHARGE_EMPTY;
         }
 	}
 
