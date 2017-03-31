@@ -1,9 +1,9 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2008
-
-Project("{386B905E-683F-0E3B-E5B7-38310B02B882}") = "PoolParty", "Assembly-CSharp.csproj", "{62F899D9-C11D-C08D-7028-D716ED5FA638}"
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoolParty", "Assembly-CSharp.csproj", "{62F899D9-C11D-C08D-7028-D716ED5FA638}"
 EndProject
-Project("{386B905E-683F-0E3B-E5B7-38310B02B882}") = "PoolParty", "Assembly-CSharp-Editor.csproj", "{80FCA3DA-D4FD-1ED6-2F58-82AEF6603845}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PoolParty", "Assembly-CSharp-Editor.csproj", "{80FCA3DA-D4FD-1ED6-2F58-82AEF6603845}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

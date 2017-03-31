@@ -64,10 +64,12 @@ public class GameManager : MonoBehaviour
 		AirConsole.instance.onMessage += OnMessage;
 		AirConsole.instance.onConnect += OnConnect;
 		AirConsole.instance.onDisconnect += OnDisconnect;
+
 	}
 
 	void Start()
 	{
+
 		// Set initial game state
 		GameState = STATE.MENU;
 
@@ -548,6 +550,11 @@ public class GameManager : MonoBehaviour
 		}
 
 	}
+
+	void SwapController(){
+		AirConsole.instance.controllerHtml = "test2.html";
+	}
+
 
 	//Debug message for what information has been sent to controller
 	void debugMessage(JObject msg, int ID){
