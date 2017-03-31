@@ -1,21 +1,17 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Resources\Scripts\AbilityBarScript.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Resources\Scripts\GameManager.cs">
     <Files>
-      <File FileName="Assets\AirConsole\scripts\AirConsole.cs" Line="1" Column="1" />
-      <File FileName="Assets\Resources\Scripts\GameManager.cs" Line="816" Column="3" />
-      <File FileName="Assets\Resources\Scripts\MenuScript.cs" Line="131" Column="2" />
-      <File FileName="Assets\Resources\Scripts\ourcontroller.html" Line="1" Column="1" />
-      <File FileName="Assets\Resources\Scripts\LevelManager.cs" Line="1" Column="1" />
-      <File FileName="Assets\Resources\Scripts\AudioManager.cs" Line="1" Column="1" />
-      <File FileName="Assets\Resources\Scripts\KnobMovement.cs" Line="107" Column="40" />
-      <File FileName="Assets\Resources\Scripts\PersonScript.cs" Line="1" Column="1" />
-      <File FileName="Assets\Resources\Scripts\ScoreScript.cs" Line="55" Column="33" />
-      <File FileName="Assets\Resources\Scripts\AbilityBarScript.cs" Line="19" Column="1" />
+      <File FileName="Assets\Resources\Scripts\GameManager.cs" Line="106" Column="3" />
+      <File FileName="Assets\Resources\Scripts\KnobMovement.cs" Line="1" Column="1" />
+      <File FileName="Assets\WebGLTemplates\controllerv2.html" Line="205" Column="26" />
+      <File FileName="Assets\Resources\Scripts\MenuScript.cs" Line="108" Column="2" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <RunToCursorBreakpoint file="C:\Users\Soulful Brown\Documents\GameJam\PoolParty\Assets\WebGLTemplates\controllerv2.html" line="90" column="20" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>
