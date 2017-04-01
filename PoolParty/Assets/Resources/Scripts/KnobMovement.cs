@@ -30,6 +30,7 @@ public class KnobMovement : MonoBehaviour {
     public int bumpBoost = 2;
     public int killBoost = 10;
     public bool abilityAvailable = false;
+    public bool chargeAbilityReady = false;
 
 	// Collisions
 	private CircleCollider2D col;
@@ -155,23 +156,38 @@ public class KnobMovement : MonoBehaviour {
 			Vector2 direction = playerPos - splashPos;
 			direction.Normalize ();
 
-			// Add force
-			rigBody.AddForce (direction * force, ForceMode2D.Impulse);
+            if (chargeAbilityReady)
+            {
+                // Do charge boost instead
+                GetComponentInChildren<ChargeScript>().direction = direction;
+                GetComponentInChildren<ChargeScript>().angle = gMan.getAngle(playerID);
+                Debug.Log("Rotation " + gMan.getAngle(playerID));
+                GetComponentInChildren<ChargeScript>().fire = true;
+                chargeAbilityReady = false;
 
-			// Reset timer
-			tapTimer = 0;
+                // Reset timer
+                tapTimer = 0;
+            }
+            else
+            {
+                // Add force
+                rigBody.AddForce(direction * force, ForceMode2D.Impulse);
+
+                // Reset timer
+                tapTimer = 0;
+            }
 		}
 
         // Spawn ability when ready
         if (abilityAvailable && gMan.GameState == GameManager.STATE.GAME)
         {
-            //GameObject newAbility = Instantiate(ability, gameObject.transform, false) as GameObject;
-            //if (newAbility.GetComponent<BombScript>() != null)
-            //{
-            //    newAbility.GetComponent<BombScript>().SetOwner(gameObject.GetInstanceID());
-            //}
-            //abilityAvailable = false;
-            //chargeLevel = CHARGE_EMPTY;
+            GameObject newAbility = Instantiate(ability, gameObject.transform, false) as GameObject;
+            if (newAbility.GetComponent<BombScript>() != null)
+            {
+                newAbility.GetComponent<BombScript>().SetOwner(gameObject.GetInstanceID());
+            }
+            abilityAvailable = false;
+            chargeLevel = CHARGE_EMPTY;
         }
 	}
 
