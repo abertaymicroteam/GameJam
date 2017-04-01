@@ -83,8 +83,10 @@ public class MenuScript : MonoBehaviour
 		tapToPlay.enabled = true;
 		foreach (GameObject graphic in ActiveGraphics) 
 		{
-			SpriteRenderer rend = graphic.GetComponent<SpriteRenderer> ();
+			SpriteRenderer rend = graphic.GetComponentsInChildren<SpriteRenderer> ()[0];
+			SpriteRenderer abilityRend = graphic.GetComponentsInChildren<SpriteRenderer> ()[1];
 			rend.enabled = true;
+			abilityRend.enabled = true;
 		}
 		SpriteRenderer pNumsRenderer = GameObject.Find("Player Numbers").GetComponent<SpriteRenderer> ();
 		pNumsRenderer.enabled = true;
@@ -98,8 +100,10 @@ public class MenuScript : MonoBehaviour
 		tapToPlay.enabled = false;
 		foreach (GameObject graphic in ActiveGraphics) 
 		{
-			SpriteRenderer rend = graphic.GetComponent<SpriteRenderer> ();
+			SpriteRenderer rend = graphic.GetComponentsInChildren<SpriteRenderer> ()[0];
+			SpriteRenderer abilityRend = graphic.GetComponentsInChildren<SpriteRenderer> ()[1];
 			rend.enabled = false;
+			abilityRend.enabled = false;
 		}
 		SpriteRenderer pNumsRenderer = GameObject.Find("Player Numbers").GetComponent<SpriteRenderer> ();
 		pNumsRenderer.enabled = false;
