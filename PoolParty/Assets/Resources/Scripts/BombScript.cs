@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 // <summary>
 // When initialised this class handles the animation, collision handling and physics of the bomb ability
@@ -9,9 +10,17 @@ public class BombScript : MonoBehaviour
 	// Object references
 	private GameManager gMan;
 
+	// Animation prefabs and containers
+	public List<GameObject> Animations = new List<GameObject>();
+	private GameObject release;
+	private GameObject active;
+	private GameObject explode;
+
 	// Attributes
 	public int owner = 0; // The InstanceID of the player who this ability belongs to
 	private bool activated = false; // Is the bomb armed
+	private bool spawned = true;
+	private float timer = 4.0f;
     Vector3 spawnPos;
 
 	// Use this for initialization
@@ -23,12 +32,31 @@ public class BombScript : MonoBehaviour
         // De-parent the object
         transform.parent = null;
         transform.localScale = new Vector3(2.5f, 2.5f, 2.5f);
+		// Spawn release animation
+		release = Instantiate(Animations[0], transform, false) as GameObject;
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
+//		if (release != null) {
+//			if (release.GetComponentInChildren<ParticleSystem> ().isPlaying && !spawned) {
+//				spawned = true;
+//			}
+//		}
 
+		if (spawned && timer > 0.0f) {
+			timer -= Time.deltaTime;
+		}
+
+		// Swap to active animation once spawn finished
+		if (spawned && timer <= 0.0f) 
+		{
+			activated = true;
+			spawned = false;
+			active = Instantiate (Animations [1], transform, false) as GameObject;
+			//DestroyObject (release);
+		}
 	}
 
 	// Sets owner of this ability (Instance ID)
@@ -41,6 +69,10 @@ public class BombScript : MonoBehaviour
 	{
         if (activated)
         {
+			// Play explosion animation 
+			explode = Instantiate(Animations[2], transform, false) as GameObject;
+			explode.transform.parent = null;
+
             // Get direction from centre of bomb to collider point
             Vector3 direction = collider.gameObject.transform.position - transform.position;
             direction.Normalize();
@@ -81,11 +113,11 @@ public class BombScript : MonoBehaviour
         }		
 	}
 
-    private void OnTriggerExit2D(Collider2D collider)
-    {
-        if (collider.gameObject.GetInstanceID() == owner && !activated)
-        {
-            activated = true;
-        }
-    }
+    //private void OnTriggerExit2D(Collider2D collider)
+   // {
+   //     if (collider.gameObject.GetInstanceID() == owner && !activated)
+    //    {
+    //        activated = true;
+   //     }
+   // }
 }
