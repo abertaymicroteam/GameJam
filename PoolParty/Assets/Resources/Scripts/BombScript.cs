@@ -9,6 +9,7 @@ public class BombScript : MonoBehaviour
 {	
 	// Object references
 	private GameManager gMan;
+    private AudioManager audioMan;
 
 	// Animation prefabs and containers
 	public List<GameObject> Animations = new List<GameObject>();
@@ -21,6 +22,10 @@ public class BombScript : MonoBehaviour
 	private bool activated = false; // Is the bomb armed
 	private bool spawned = true;
 	private float timer = 4.0f;
+    private float bubbleTimer = 2.0f;
+    private float beepTimer = 0.0f;
+    private bool bubbleTimerActive = false;
+    private bool beepTimerActive = false;
     Vector3 spawnPos;
 
 	// Use this for initialization
@@ -29,23 +34,46 @@ public class BombScript : MonoBehaviour
 		// Get game manager for access to Player List
 		gMan =  (GameManager)FindObjectOfType<GameManager>();
 
+        // Get audio manager
+        audioMan = (AudioManager)FindObjectOfType<AudioManager>();
+
         // De-parent the object
         transform.parent = null;
         transform.localScale = new Vector3(2.5f, 2.5f, 2.5f);
 		// Spawn release animation
 		release = Instantiate(Animations[0], transform, false) as GameObject;
+
+        // Start counting to bubbles sound
+        bubbleTimerActive = true;        
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
-//		if (release != null) {
-//			if (release.GetComponentInChildren<ParticleSystem> ().isPlaying && !spawned) {
-//				spawned = true;
-//			}
-//		}
+        // Wait to play bubble sound effect
+        if (bubbleTimerActive && bubbleTimer > 0.0f)
+        {
+            bubbleTimer -= Time.deltaTime;
+        }
 
-		if (spawned && timer > 0.0f) {
+        if (bubbleTimer <= 0.0f && bubbleTimerActive)
+        {
+            bubbleTimerActive = false;
+            audioMan.PlayBubbles();
+        }
+
+        // Play beep every one second once activated
+        if (beepTimerActive && beepTimer > 0.0f)
+        {
+            beepTimer -= Time.deltaTime;
+        }
+        if (beepTimerActive && beepTimer <= 0.0f)
+        {
+            beepTimer = 1.0f;
+            audioMan.PlayBeep();
+        }
+
+        if (spawned && timer > 0.0f) {
 			timer -= Time.deltaTime;
 		}
 
@@ -54,6 +82,7 @@ public class BombScript : MonoBehaviour
 		{
 			activated = true;
 			spawned = false;
+            beepTimerActive = true;
 			active = Instantiate (Animations [1], transform, false) as GameObject;
 			//DestroyObject (release);
 		}
@@ -72,6 +101,9 @@ public class BombScript : MonoBehaviour
 			// Play explosion animation 
 			explode = Instantiate(Animations[2], transform, false) as GameObject;
 			explode.transform.parent = null;
+
+            // Play explosion sound
+            audioMan.PlayBombExplode();
 
             // Get direction from centre of bomb to collider point
             Vector3 direction = collider.gameObject.transform.position - transform.position;
@@ -92,7 +124,7 @@ public class BombScript : MonoBehaviour
                 float distance = newDir.magnitude;
 
                 // Check distance and that this player is not colliding player
-                if (distance < maxDistance && player.GetInstanceID() != collider.gameObject.GetInstanceID())
+                if (distance < maxDistance && player.GetInstanceID() != collider.gameObject.GetInstanceID() && player.GetInstanceID() != owner)
                 {
                     // Normalise distance vector
                     newDir.Normalize();

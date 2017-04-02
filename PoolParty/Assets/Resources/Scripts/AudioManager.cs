@@ -18,9 +18,15 @@ public class AudioManager : MonoBehaviour {
 	public AudioClip win;
 	public AudioClip stretch;
 	public AudioClip showdown;
+    public AudioClip bombExplode;
+    public AudioClip chargeRotor;
+    public AudioClip jugHit;
+    public AudioClip jugActivate;
+    public AudioClip bubbles;
+    public AudioClip beep;
 
-	// Use this for initialization
-	void Start () 
+    // Use this for initialization
+    void Start () 
 	{
 		
 	}
@@ -122,4 +128,58 @@ public class AudioManager : MonoBehaviour {
 		newSrc.Play ();
 		Playing.Add (newSrc);
 	}
+
+    public void PlayBombExplode()
+    {
+        AudioSource newSrc = gameObject.AddComponent<AudioSource>();
+        newSrc.clip = bombExplode;
+        newSrc.loop = false;
+        newSrc.Play();
+        Playing.Add(newSrc);
+    }
+
+    public void PlayCharge()
+    {
+        AudioSource newSrc = gameObject.AddComponent<AudioSource>();
+        newSrc.clip = chargeRotor;
+        newSrc.loop = false;
+        newSrc.Play();
+        Playing.Add(newSrc);
+    }
+
+    public void PlayJugBounce()
+    {
+        AudioSource newSrc = gameObject.AddComponent<AudioSource>();
+        newSrc.clip = jugHit;
+        newSrc.loop = false;
+        newSrc.Play();
+        Playing.Add(newSrc);
+    }
+
+    public void PlayJugActivate()
+    {
+        AudioSource newSrc = gameObject.AddComponent<AudioSource>();
+        newSrc.clip = jugActivate;
+        newSrc.loop = false;
+        newSrc.Play();
+        Playing.Add(newSrc);
+    }
+
+    public void PlayBubbles()
+    {
+        AudioSource newSrc = gameObject.AddComponent<AudioSource>();
+        newSrc.clip = bubbles;
+        newSrc.loop = false;
+        newSrc.Play();
+        Playing.Add(newSrc);
+    }
+
+    public void PlayBeep()
+    {
+        AudioSource newSrc = gameObject.AddComponent<AudioSource>();
+        newSrc.clip = beep;
+        newSrc.loop = false;
+        newSrc.Play();
+        Playing.Add(newSrc);
+    }
 }

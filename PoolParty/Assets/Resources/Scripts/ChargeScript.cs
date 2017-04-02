@@ -8,15 +8,16 @@ public class ChargeScript : MonoBehaviour
     // Object references
     private KnobMovement myPlayerScript;
     private GameManager gMan;
+    private AudioManager audioMan;
 
     // Attributes
-    float timer = 4.0f;
+    float timer = 3.0f;
     float forceTimer = 0.1f;
     public PhysicsMaterial2D chargeMaterial;
     private PhysicsMaterial2D defaultMaterial;
     float defaultDrag;
     bool forceApplied = false;
-    public float impulse = 10.0f;
+    public float impulse = 20.0f;
     public bool fire = false;
     private bool rotated = false;
     public Vector3 direction = Vector3.zero;
@@ -30,6 +31,9 @@ public class ChargeScript : MonoBehaviour
 
         // get game manager
         gMan = GameObject.FindObjectOfType<GameManager>();
+
+        // Get audio manager
+        audioMan = GameObject.FindObjectOfType<AudioManager>();
 
         // Apply initial effects
         defaultDrag = myPlayerScript.rigBody.drag;
@@ -51,12 +55,19 @@ public class ChargeScript : MonoBehaviour
                 Debug.Log("Rotation " + angle);
                 rotated = true;
 
+                // Start rotor animation
+                Animator rotorAnimation = GetComponentInChildren<Animator>(true);
+                rotorAnimation.enabled = true;
+
                 // Start particle systems
                 ParticleSystem[] systems = GetComponentsInChildren<ParticleSystem>();
                 foreach(ParticleSystem system in systems)
                 {
                     system.Play();
                 }
+
+                // Play audio
+                audioMan.PlayCharge();
             }
 
             if (timer > 0.0f)

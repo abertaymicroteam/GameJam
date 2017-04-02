@@ -313,6 +313,7 @@ public class KnobMovement : MonoBehaviour {
                 Vector3 direction = collision.transform.position - transform.position;
                 direction.Normalize();
                 collision.rigidbody.AddForce(direction * 50.0f, ForceMode2D.Impulse);
+                audioMan.PlayJugBounce();
             }
 		}
 	}
