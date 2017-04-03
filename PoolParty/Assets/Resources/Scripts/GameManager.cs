@@ -44,6 +44,7 @@ public class GameManager : MonoBehaviour
 	private float timer = 3.0f;
 	private bool winIncremented = false;
 	public float rotatormes;
+    private bool adShowing = false;
 	#if !DISABLE_AIRCONSOLE 
 
 	// Play area shrinking
@@ -75,9 +76,12 @@ public class GameManager : MonoBehaviour
 
 	void Awake () 
 	{
+        //overwrite airconsole functions;
 		AirConsole.instance.onMessage += OnMessage;
 		AirConsole.instance.onConnect += OnConnect;
 		AirConsole.instance.onDisconnect += OnDisconnect;
+        AirConsole.instance.onAdShow += OnAdShow;
+        AirConsole.instance.onAdComplete += OnAdComplete;
 	}
 
 	void Start()
@@ -112,13 +116,15 @@ public class GameManager : MonoBehaviour
 		{
 			if (GameState == STATE.MENU || GameState == STATE.READY)
 			{
-				// Set default spawn
-				SpawnLocation.Set (0, 0, 0);
+            
+
+                // Set default spawn
+                SpawnLocation.Set (0, 0, 0);
 
 				// Assign character
 				//int character = RandomCharacter();
 				int character = charNums [connectedPlayers];
-				//TakenCharacters [connectedPlayers] = character;
+			
 
 				// Create player
 				GameObject newPlayer = Instantiate (Characters [character], SpawnLocation, Quaternion.identity) as GameObject;
@@ -139,7 +145,6 @@ public class GameManager : MonoBehaviour
 				JObject connectionMessage = new JObject ();
 				connectionMessage.Add ("state", (int)GameState);
 				connectionMessage.Add ("angle", 0);
-				connectionMessage.Add ("No", connectedPlayers);
 				AirConsole.instance.Message (device_id, connectionMessage);
 				AirConsole.instance.SetActivePlayers (8);
 
@@ -223,7 +228,7 @@ public class GameManager : MonoBehaviour
         if (GameState == STATE.RESTART)
         {
             int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
-            if (active_player != -1)
+            if (active_player != -1 && !adShowing)
             {
                 restartTap = true;
                 GameState = STATE.GAME;
@@ -232,6 +237,20 @@ public class GameManager : MonoBehaviour
         else if (GameState == STATE.MENU)
         {
 
+            bool play = true;
+            for (int i = 0; i < connectedPlayers; i++)
+            {
+                if (ready[i] == false)
+                {
+                    play = false;
+                }
+            }
+            if (play)
+            {
+                JObject newmsg = new JObject();
+                newmsg.Add("No", 1);
+                AirConsole.instance.Message(ID[0], newmsg);
+            }
 
             if (data["button"] != null)
             {
@@ -277,6 +296,17 @@ public class GameManager : MonoBehaviour
                                     newCharacter = 7;
                                 }
 
+                                JObject availableMsg = new JObject();
+                                if (TakenCharacters.Contains(hoveredChars[it])) { 
+                                    availableMsg.Add("available", 1);
+                                }
+                                else
+                                {
+                                    availableMsg.Add("available", 2);
+                                }
+                                AirConsole.instance.Message(ID[it], availableMsg);
+                                availableMsg.ClearItems();
+
                                 // Create new player
                                 GameObject newPlayer = Instantiate(Characters[newCharacter], SpawnLocation, Quaternion.identity) as GameObject;
                                 newPlayer.GetComponent<KnobMovement>().characterNumber = newCharacter;
@@ -315,6 +345,18 @@ public class GameManager : MonoBehaviour
                                 {
                                     newCharacter = 0;
                                 }
+
+                                JObject availableMsg = new JObject();
+                                if (TakenCharacters.Contains(hoveredChars[it]))
+                                {
+                                    availableMsg.Add("available", 1);
+                                }
+                                else
+                                {
+                                    availableMsg.Add("available", 2);
+                                }
+                                AirConsole.instance.Message(ID[it], availableMsg);
+                                availableMsg.ClearItems();
 
                                 // Create new player
                                 GameObject newPlayer = Instantiate(Characters[newCharacter], SpawnLocation, Quaternion.identity) as GameObject;
@@ -382,6 +424,7 @@ public class GameManager : MonoBehaviour
                         newmsg.Add("pow", 1);
                         AirConsole.instance.Message(ID[it], newmsg);
                         controllerState[it] = ControllerState.Ready;
+                        ready[it] = true;
                     }
 
                 }
@@ -394,23 +437,13 @@ public class GameManager : MonoBehaviour
                         controllerState[it] = ControllerState.Power;
                         ready[it] = false;
                     }
-                    if (data["button"].ToString() == "ready")
+
+                 
+                        if (data["button"].ToString() == "play")
                     {
-                        ready[it] = true;
-                    }
-                    if (data["button"].ToString() == "play")
-                    {
-                        ready[it] = true;
-                        bool play = true;
-                        for (int i = 0; i < connectedPlayers; i++)
-                        {
-                            if (ready[i] == false)
-                            {
-                                play = false;
-                            }
-                        }
-                        if (play)
-                        {
+                      
+                       
+
                             if (connectedPlayers != prevConnectedPlayers)
                             {
                                 MessageAll();
@@ -418,7 +451,7 @@ public class GameManager : MonoBehaviour
                             }
                             StartGame();
 
-                        }
+                      
                     }
                 }
 
@@ -646,6 +679,9 @@ public class GameManager : MonoBehaviour
 						playDrop = true;
 					}
 
+                    //show ad if eonugh time has pssed
+                    AirConsole.instance.ShowAd();
+
 					if (restartTap) 
 					{
 						// Reset bools
@@ -713,6 +749,9 @@ public class GameManager : MonoBehaviour
 						audioMan.PlayDrop ();
 						playDrop = true;
 					}
+
+                    //if enough time has passed play ad
+                    AirConsole.instance.ShowAd();
 
 					if (restartTap) {
 						// Reset bools
@@ -810,7 +849,7 @@ public class GameManager : MonoBehaviour
 					currentAngle = (Mathf.Round ((i.transform.rotation.eulerAngles.z * 100)) / 100);
 
 					//send message to the player
-					UpdateMessage (currentAngle, charNums[msgI], msgI);
+					UpdateMessage (currentAngle, charNums[msgI], msgI, i.GetComponent<KnobMovement>().chargeLevel);
 
 					//increase iterator
 					msgI++;
@@ -819,25 +858,13 @@ public class GameManager : MonoBehaviour
 				messagetimer = 0.1f;
 			}
 
-            ////if power up ready
-            //int disinterator = 0;
-            //foreach (GameObject i in Players)
-            //{
-            //    if(i.GetComponent<KnobMovement>().chargeLevel >= 100)
-            //    {
-            //        JObject msg = new JObject();
-            //        msg.Add("powUp", 1);                     
-            //        AirConsole.instance.Message(ID[disinterator], msg);                                            
-            //        msg.ClearItems();
-            //    }
-            //    disinterator++;
-            //}		
-		}
+    
+        }
 	}
 
 
 	// Sends a message to the players controller with the current rotation of their character 
-	void UpdateMessage(float angle, int character, int iterator){
+	void UpdateMessage(float angle, int character, int iterator, int powpow){
 
 		JObject msg = new JObject ();			//message 
 
@@ -847,6 +874,7 @@ public class GameManager : MonoBehaviour
 		{
 			msg.Add ("angle", (int)(-angle));						//add rotation to msg
 			msg.Add ("charNo", character + 1);							//add char number to msg
+            msg.Add("powUp", powpow);
 			msg.Add ("state", (int)GameState);
 			AirConsole.instance.Message (ID [iterator], msg);		//send message
 			debugMessage(msg, ID[iterator]);						//debug
@@ -1093,6 +1121,22 @@ public class GameManager : MonoBehaviour
 		}
 
 	}
+
+    void OnAdShow()
+    {
+        //mute game audio prevent game restart
+        AudioListener.volume = 0;
+        adShowing = true;
+    }
+
+    void OnAdComplete(bool adWasShown)
+    {
+        if (adWasShown)
+        {
+            AudioListener.volume = 1;
+            adShowing = false;
+        }
+    }
 
 	public static void ShuffleArray<T>(T[] arr) 
 	{

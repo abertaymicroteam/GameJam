@@ -48,9 +48,8 @@
       var pow_button_back = document.getElementById('back_pow');
       pow_button_back.addEventListener('touchstart', back);
 
-      //  //Ready
-      var ready_button_back = document.getElementById('ready_play');
-      ready_button_back.addEventListener('touchstart', play);
+      
+      
       var ready_button_play = document.getElementById('ready_back');
       ready_button_play.addEventListener('touchstart', back);
 
@@ -58,11 +57,11 @@
       var button = document.getElementById('touchpad');
       button.addEventListener('touchstart', move);
       var pow_button = document.getElementById('powerbutt');
-      pow_button.addEventListener('touchstart', powS);
+      
 
       //get the button
       var url = document.getElementById("butt");    
-      
+      pow_button.addEventListener('touchstart', powS);
 
       airconsole.onMessage = function (from, data) {
 
@@ -80,13 +79,28 @@
           	  }
 
           	  if (data.No) {
-          	      playerNumber = data.No;
+          	   
+          	          var ready_button_back = document.getElementById('ready_play');
+          	          ready_button_back.addEventListener('touchstart', play);
+          	          ready_button_back.style.backgroundImage = "url(Play.png)";
+ 
           	  }
 
-              //if (data.powUp) {
-              //    var daspow = document.getElementId("powerbutt");
-              //    daspow.style.backgroundImage = "url(ability1.png)";
-          	  //}
+          	  if (data.powUp  >= 100 ) {
+                  var daspow = document.getElementById("powerbutt");
+                  daspow.style.backgroundImage = "url(ability1.png)";
+          	  }
+
+          	  if (data.available ) {
+          	      if (data.available == 1) {
+          	          var dastaken = document.getElementById("char_avail");
+          	          dastaken.style.backgroundImage = "url(taken.png)";
+          	      } else {
+          	         var dastaken = document.getElementById("char_avail");
+          	          dastaken.style.backgroundImage = "url(available.png)";
+          	      }
+          	  }
+             
 
               if (data.charNo) {
                 switch (data.charNo) {
@@ -142,7 +156,7 @@
 
     function powS(event) {
         airconsole.message(AirConsole.SCREEN, { title: "game_button", button: "pow" });
-        var daspow =document.getElementId("powerbutt");
+        var daspow = document.getElementById("powerbutt");
         daspow.style.backgroundImage = "url(ability2.png)";
     }
 
@@ -185,7 +199,7 @@
                                     break;
                               }   
 
-                              document.getElementById("display_char").textContent = text;
+                       
 
                         break;
             case 1:
@@ -210,7 +224,7 @@
                                 break;
                         }
 
-                        document.getElementById("display_pow").textContent = text;
+
 
                         break;                       
         }
@@ -288,7 +302,6 @@
                         break;
                 }
 
-                document.getElementById("display_char").textContent = text;
 
                 break;
             case 1:
@@ -314,7 +327,7 @@
                         break;
                 }
 
-                document.getElementById("display_pow").textContent = text;
+
 
                 break;
 
@@ -377,7 +390,6 @@
         }
 
         .button_image {
-            content: "text";
             background-image: url("loading.png");
             background-size: 150px;
          	background-repeat: no-repeat;
@@ -419,12 +431,28 @@
             position: absolute;
             top: 20%;
             left: 50%;
-            margin-top: -75px;
-            margin-left: -125px;
-            width: 250px;
-            height: 250px;
+            margin-top: -25px;
+            margin-left: -80px;
+            width: 175px;
+            height: 175px;
 
             transform: rotate(0deg) ;
+        }
+        .menu_display_char_name{
+
+            background-image: url("available.png");
+            background-size: contain;
+         	background-repeat: no-repeat;
+         	background-position: center center;
+            background-color: transparent;
+
+            position: absolute;
+            top: 5%;
+            left: 50%;
+            margin-left: -52px;
+       
+            height: 10%;
+            width: 30%;
         }
            .menu_display_pow {
             
@@ -494,7 +522,7 @@
         }
 
         .button_play {
-            background-image: url("Play.png");
+           
             background-size: contain;
          	background-repeat: no-repeat;
          	background-position: center center;
@@ -507,6 +535,21 @@
 
             width: 80px;
             height: 80px;
+        }
+        .ready_button{
+            background-image: url("ready.png");
+            background-size: contain;
+         	background-repeat: no-repeat;
+         	background-position: center center;
+            background-color: transparent;
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -160%);
+
+            width: 250px;
+            height: 100px;
         }
 
         .button_back {
@@ -555,6 +598,7 @@
     <div id="menu_char" class="view default-view">
         <div class="button">
             <div id ="display_char" class="menu_display_char"></div>
+            <div id="char_avail" class="menu_display_char_name"></div>
             <div id="left_char" class="button_left"></div>
             <div id="select_char" class="button_select"></div>
             <div id="right_char" class="button_right"></div>
@@ -573,6 +617,7 @@
 
     <div id="menu_ready" class="view">
         <div class="button">
+            <div id="ready" class="ready_button"></div>
             <div id="ready_play" class="button_play"></div>
             <div id="ready_back" class="button_back"></div>
         </div>
