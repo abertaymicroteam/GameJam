@@ -27,6 +27,8 @@ public class MenuScript : MonoBehaviour
 	public SpriteRenderer tapToPlay;
 	private Text winnerName;
 	float restartTimer = 1.0f;
+    [SerializeField]
+    private Sprite[] ConnectGraphicSprites;
 	public List<GameObject> CharacterGraphics;
 	public List<GameObject> CharacterScores;
 	private List<GameObject> ActiveGraphics = new List<GameObject> ();
@@ -142,10 +144,11 @@ public class MenuScript : MonoBehaviour
 	public void UpdateConnectGraphic(int playerNumber, int character)
 	{
 		// Updates player's graphic to new character for character selection
-		Destroy(ActiveGraphics[playerNumber]);
-		ActiveGraphics.Remove (ActiveGraphics [playerNumber]);
-		GameObject newGraphic = Instantiate (CharacterGraphics [character], GraphicPositions [playerNumber], Quaternion.identity) as GameObject;
-		ActiveGraphics.Add (newGraphic);
+		//Destroy(ActiveGraphics[playerNumber]);
+		//ActiveGraphics.Remove (ActiveGraphics [playerNumber]);
+		//GameObject newGraphic = Instantiate (CharacterGraphics [character], GraphicPositions [playerNumber], Quaternion.identity) as GameObject;
+		//ActiveGraphics.Add (newGraphic);
+        ActiveGraphics[playerNumber].GetComponent<SpriteRenderer>().sprite = ConnectGraphicSprites[character];
 	}
 
 	public void ShowScores()

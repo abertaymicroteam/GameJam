@@ -57,9 +57,12 @@
       //set up the touch response to use the move function
       var button = document.getElementById('touchpad');
       button.addEventListener('touchstart', move);
+      var pow_button = document.getElementById('powerbutt');
+      pow_button.addEventListener('touchstart', powS);
 
       //get the button
       var url = document.getElementById("butt");    
+      
 
       airconsole.onMessage = function (from, data) {
 
@@ -80,7 +83,11 @@
           	      playerNumber = data.No;
           	  }
 
-          
+              //if (data.powUp) {
+              //    var daspow = document.getElementId("powerbutt");
+              //    daspow.style.backgroundImage = "url(ability1.png)";
+          	  //}
+
               if (data.charNo) {
                 switch (data.charNo) {
                  case 1: url.style.backgroundImage = "url(phil.png)";
@@ -131,6 +138,12 @@
       }
 
    
+    }
+
+    function powS(event) {
+        airconsole.message(AirConsole.SCREEN, { title: "game_button", button: "pow" });
+        var daspow =document.getElementId("powerbutt");
+        daspow.style.backgroundImage = "url(ability2.png)";
     }
 
     function left(event) {
@@ -520,6 +533,21 @@
             margin-top: -8px;
             color: #777;
         }
+
+        .power_button{
+            background-size: contain;
+            background-image: url("ability2.png");
+            background-repeat: no-repeat;
+         	background-position: center center;
+            background-color: transparent;
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            width: 50px;
+            height: 50px;
+       
+        }
+
     </style>
 </head>
 <body onload="init()">
@@ -554,6 +582,7 @@
         <div id="touchpad" class=button>
             <div id="butt" class="button_image"></div>
         </div>
+       <div id="powerbutt" class="power_button"></div>
     </div>
 
     

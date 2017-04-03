@@ -177,7 +177,10 @@ public class KnobMovement : MonoBehaviour {
                 tapTimer = 0;
             }
 		}
+    }
 
+    public void useAbility()
+    {
         // Spawn ability when ready
         if (abilityAvailable && gMan.GameState == GameManager.STATE.GAME)
         {
@@ -188,8 +191,10 @@ public class KnobMovement : MonoBehaviour {
             }
             abilityAvailable = false;
             chargeLevel = CHARGE_EMPTY;
+       
         }
-	}
+      
+    }
 
 	Vector2 CirclePos(Vector2 centre, float radius, float angle)
 	{
