@@ -10,111 +10,113 @@
                          navigator.msVibrate);
 
     var airconsole = new AirConsole();
+
     var vm = null;
 
     var characterSelect = 1;
+    var powerupSelected = 1;
+    var playerNumber = 0;
 
-    var selected = false;
-    /**
-     * Sets up the communication to the screen.
-     */
+
+        //0-char select
+        //1-powerup select
+        //2-readyscreen
+        //3-game
+    var state = 0;
 
     function init() {
       var div = document.getElementById("player_id");
       airconsole = new AirConsole({ "orientation": "portrait" });
         
     
-      //set up menu buttons reponse to use left right and select functions
-      var button_left = document.getElementById('left');
-      button_left.addEventListener('touchstart', left);
-      var button_select = document.getElementById('select');
-      button_select.addEventListener('touchstart', select);
-      var button_right = document.getElementById('right');
-      button_right.addEventListener('touchstart', right);
-      var button_play = document.getElementById('play');
-      button_play.addEventListener('touchstart', play);
-      var button_back = document.getElementById('back');
-      button_back.addEventListener('touchstart', back);
+        //set up menu buttons reponse to use left right and select functions
+        //char select
+      var char_button_left = document.getElementById('left_char');
+      char_button_left.addEventListener('touchstart', left);
+      var char_button_select = document.getElementById('select_char');
+      char_button_select.addEventListener('touchstart', select);
+      var char_button_right = document.getElementById('right_char');
+      char_button_right.addEventListener('touchstart', right);
+
+        //pow select
+      var pow_button_left = document.getElementById('left_pow');
+      pow_button_left.addEventListener('touchstart', left);
+      var pow_button_select = document.getElementById('select_pow');
+      pow_button_select.addEventListener('touchstart', select);
+      var pow_button_right = document.getElementById('right_pow');
+      pow_button_right.addEventListener('touchstart', right);
+      var pow_button_back = document.getElementById('back_pow');
+      pow_button_back.addEventListener('touchstart', back);
+
+      //  //Ready
+      var ready_button_back = document.getElementById('ready_play');
+      ready_button_back.addEventListener('touchstart', play);
+      var ready_button_play = document.getElementById('ready_back');
+      ready_button_play.addEventListener('touchstart', back);
+
       //set up the touch response to use the move function
       var button = document.getElementById('touchpad');
       button.addEventListener('touchstart', move);
 
       //get the button
-      var url = document.getElementById("menu");    
+      var url = document.getElementById("butt");    
 
       airconsole.onMessage = function (from, data) {
 
           if (from == AirConsole.SCREEN) 
           {
-          		
-          	  if(data.selected){
-          	  	selected = data.selected;
+              
+              if (data.char) {
+          	       state = 1;
+          	       vm.show("menu_pow");
+              }
+
+          	  if(data.pow){
+          	       state = 2;
+          	       vm.show("menu_ready");
           	  }
 
-            if (data.state) {
-                  switch (data.state) {
-                      case 0:
-                          url.style.backgroundImage = "url(taptoplay.png)";
-                          url.style.transform = "rotate(0deg)";
-                          break;
-                      case 1:
-                          if (data.charNo) {
-                              switch (data.charNo) {
-                                  case 1: url.style.backgroundImage = "url(phil.png)";
-                                      break;
-                                  case 2: url.style.backgroundImage = "url(jamie.png)";
-                                      break;
-                                  case 3: url.style.backgroundImage = "url(wallace.png)";
-                                      break;
-                                  case 4: url.style.backgroundImage = "url(bertha.png)";
-                                      break;
-                                  case 5: url.style.backgroundImage = "url(adrian.png)";
-                                      break;
-                                  case 6: url.style.backgroundImage = "url(betty.png)";
-                                      break;
-                                  case 7: url.style.backgroundImage = "url(mike.png)";
-                                      break;
-                                  case 8: url.style.backgroundImage = "url(tam.png)";
-                                      break;
-                              }
-                              if (data.angle) {
-                                  url.style.transform = "rotate(" + data.angle + "deg)";
-                              }
-                          }
-                          break;
-                      case 2:
-                          url.style.backgroundImage = "url(taptoplay.png)";
-                          url.style.transform = "rotate(0deg)";
-                          break;
-                      case 3:
-                          url.style.backgroundImage = "url(taptoplay.png)";
-                          url.style.transform = "rotate(0deg)";
-                          break;
-                  }
-         
-                  
-                    
-              }
-            
+          	  if (data.No) {
+          	      playerNumber = data.No;
+          	  }
+
+          
+              if (data.charNo) {
+                switch (data.charNo) {
+                 case 1: url.style.backgroundImage = "url(phil.png)";
+                      break;
+                 case 2: url.style.backgroundImage = "url(jamie.png)";
+                      break;
+                 case 3: url.style.backgroundImage = "url(wallace.png)";
+                      break;
+                 case 4: url.style.backgroundImage = "url(bertha.png)";
+                      break;
+                 case 5: url.style.backgroundImage = "url(adrian.png)";
+                      break;
+                 case 6: url.style.backgroundImage = "url(betty.png)";
+                      break;
+                 case 7: url.style.backgroundImage = "url(mike.png)";
+                      break;
+                 case 8: url.style.backgroundImage = "url(tam.png)";
+                      break;
+                 }
+                 if (data.angle) {
+                    url.style.transform = "rotate(" + data.angle + "deg)";
+                 }
+              }       
           }
-
-
       }
   
       airconsole.onCustomDeviceStateChange = function (device_id, device_data) {
           //check if the state change was on the screen, not some other device
-
-          vm.onViewChange(data, function (view_id) {
-              // view has changed
-          });
-          //if (device_id == 0) {
-          //    if (device_data["sceneInfo"] != null && device_data["sceneInfo"] == "game") {
-          //        vm.show("view_game");
-          //    }
-          //    if (device_data["sceneInfo"] != null && device_data["sceneInfo"] == "menu") {
-          //        vm.show("view_menu");
-          //    }
-          //}
+          if (device_id == 0) {
+              if (device_data["sceneInfo"] != null && device_data["sceneInfo"] == "game") {
+                  vm.show("game");
+              }
+              if (device_data["sceneInfo"] != null && device_data["sceneInfo"] == "menu") {
+                  vm.show("menu");
+              }
+          }
       }
   
     
@@ -132,112 +134,178 @@
     }
 
     function left(event) {
-    if(selected == false){
-        var text = "default";
-        if (characterSelect > 1 && !selected) {
-            characterSelect--;
-            document.getElementById("display").textContent = characterSelect
-            airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "left" });
-            
-        }
-        var charDisplay = document.getElementById("display");
-        switch (characterSelect) {
-            case 1: charDisplay.style.backgroundImage = "url(phil.png)";
-                text = "Phil";
-                break;
-            case 2: charDisplay.style.backgroundImage = "url(jamie.png)";
-                text = "Jamie";
-                break;
-            case 3: charDisplay.style.backgroundImage = "url(wallace.png)";
-                text = "Wallace";
-                break;
-            case 4: charDisplay.style.backgroundImage = "url(bertha.png)";
-                text = "Bertha";
-                break;
-            case 5: charDisplay.style.backgroundImage = "url(adrian.png)";
-                text = "Adrian";
-                break;
-            case 6: charDisplay.style.backgroundImage = "url(betty.png)";
-                text = "Betty";
-                break;
-            case 7: charDisplay.style.backgroundImage = "url(mike.png)";
-                text = "Mike";
-                break;
-            case 8: charDisplay.style.backgroundImage = "url(tam.png)";
-                text = "Tam";
-                break;
-        }
+        switch(state){
+            case 0:        
+                            var text = "default";
 
-        document.getElementById("display").textContent = text;
-      
-      
+                            if (characterSelect > 1) {
+                                characterSelect--;
+                                airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "left" });
+            
+                            }
+
+                            var charDisplay = document.getElementById("display_char");
+                            switch (characterSelect) {
+                                case 1: charDisplay.style.backgroundImage = "url(phil.png)";
+                                    text = "Phil";
+                                    break;
+                                case 2: charDisplay.style.backgroundImage = "url(jamie.png)";
+                                    text = "Jamie";
+                                    break;
+                                case 3: charDisplay.style.backgroundImage = "url(wallace.png)";
+                                    text = "Wallace";
+                                    break;
+                                case 4: charDisplay.style.backgroundImage = "url(bertha.png)";
+                                    text = "Bertha";
+                                    break;
+                                case 5: charDisplay.style.backgroundImage = "url(adrian.png)";
+                                    text = "Adrian";
+                                    break;
+                                case 6: charDisplay.style.backgroundImage = "url(betty.png)";
+                                    text = "Betty";
+                                    break;
+                                case 7: charDisplay.style.backgroundImage = "url(mike.png)";
+                                    text = "Mike";
+                                    break;
+                                case 8: charDisplay.style.backgroundImage = "url(tam.png)";
+                                    text = "Tam";
+                                    break;
+                              }   
+
+                              document.getElementById("display_char").textContent = text;
+
+                        break;
+            case 1:
+                        var text = "default";
+
+                        if (powerupSelected > 1 ) {
+                            powerupSelected--; 
+                            airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "left" });
+                        }
+
+                        var powDisplay = document.getElementById("display_pow");
+
+                        switch (powerupSelected) {
+                            case 1: powDisplay.style.backgroundImage = "url(rotor.png)";
+                                text = "Charge";
+                                break;
+                            case 2: powDisplay.style.backgroundImage = "url(shield.png)";
+                                text = "Juggernaut";
+                                break;
+                            case 3: powDisplay.style.backgroundImage = "url(bomb.png)";
+                                text = "Mine";
+                                break;
+                        }
+
+                        document.getElementById("display_pow").textContent = text;
+
+                        break;                       
         }
     }
 
     function select(event) {
 
-		
         airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "select" });
-        if (selected == false) {
-       	 	
-       	 	selected = true;
-       	}
+           
     }
 
     function play(event) {
-        airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "play" });
-    
-     
-        
+        airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "play" });          
     }
 
     function back(event) {
-
-    	if(selected == true){
+       
+        switch(state){
+            case 1:
+    
         	airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "back" });
         	
-        }
-        selected = false;
-    }
-    function right(event) {
-    if(selected == false){
-        var text = "default";
-        if (characterSelect < 8 && !selected) {
-            characterSelect++;
-            document.getElementById("display").textContent = characterSelect;
-            airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "right" });
-        }
-        var charDisplay = document.getElementById("display");
-        switch (characterSelect) {
-            case 1: charDisplay.style.backgroundImage = "url(phil.png)";
-                text = "Phil";
-                break;
-            case 2: charDisplay.style.backgroundImage = "url(jamie.png)";
-                text = "Jamie";
-                break;
-            case 3: charDisplay.style.backgroundImage = "url(wallace.png)";
-                text = "Wallace";
-                break;
-            case 4: charDisplay.style.backgroundImage = "url(bertha.png)";
-                text = "Bertha";
-                break;
-            case 5: charDisplay.style.backgroundImage = "url(adrian.png)";
-                text = "Adrian";
-                break;
-            case 6: charDisplay.style.backgroundImage = "url(betty.png)";
-                text = "Betty";
-                break;
-            case 7: charDisplay.style.backgroundImage = "url(mike.png)";
-                text = "Mike";
-                break;
-            case 8: charDisplay.style.backgroundImage = "url(tam.png)";
-                text = "Tam";
-                break;
-        }
+        	state--;
+        	vm.show('menu_char');
+        	break;
 
-        document.getElementById("display").textContent = text;
-       
-    
+            case 2:
+
+            airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "back" });
+            
+            state--;
+            vm.show('menu_pow');
+            break;
+        }
+    }
+
+
+    function right(event) {
+        switch (state) {
+            case 0:
+                //var text = "default";
+
+                if (characterSelect < 8) {
+                    characterSelect++;
+                    airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "right" });
+
+                }
+
+                var charDisplay = document.getElementById("display_char");
+              
+                switch (characterSelect) {
+                    case 1: charDisplay.style.backgroundImage = "url(phil.png)";
+                        text = "Phil";
+                        break;
+                    case 2: charDisplay.style.backgroundImage = "url(jamie.png)";
+                        text = "Jamie";
+                        break;
+                    case 3: charDisplay.style.backgroundImage = "url(wallace.png)";
+                        text = "Wallace";
+                        break;
+                    case 4: charDisplay.style.backgroundImage = "url(bertha.png)";
+                        text = "Bertha";
+                        break;
+                    case 5: charDisplay.style.backgroundImage = "url(adrian.png)";
+                        text = "Adrian";
+                        break;
+                    case 6: charDisplay.style.backgroundImage = "url(betty.png)";
+                        text = "Betty";
+                        break;
+                    case 7: charDisplay.style.backgroundImage = "url(mike.png)";
+                        text = "Mike";
+                        break;
+                    case 8: charDisplay.style.backgroundImage = "url(tam.png)";
+                        text = "Tam";
+                        break;
+                }
+
+                document.getElementById("display_char").textContent = text;
+
+                break;
+            case 1:
+                var text = "default";
+
+                if (powerupSelected < 3) {
+                    powerupSelected++;
+                    airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "right" });
+
+                }
+
+                var powDisplay = document.getElementById("display_pow");
+
+                switch (powerupSelected) {
+                    case 1: powDisplay.style.backgroundImage = "url(rotor.png)";
+                        text = "charge";
+                        break;
+                    case 2: powDisplay.style.backgroundImage = "url(shield.png)";
+                        text = "Juggernaut";
+                        break;
+                    case 3: powDisplay.style.backgroundImage = "url(bomb.png)";
+                        text = "Mine";
+                        break;
+                }
+
+                document.getElementById("display_pow").textContent = text;
+
+                break;
+
+
         }
     }
     function move(event) 
@@ -327,9 +395,27 @@
 			
         }
 
-        .menu_display {
+        .menu_display_char {
             
             background-image: url("phil.png");
+            background-size: contain;
+         	background-repeat: no-repeat;
+         	background-position: center center;
+            background-color: transparent;
+
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            margin-top: -75px;
+            margin-left: -125px;
+            width: 250px;
+            height: 250px;
+
+            transform: rotate(0deg) ;
+        }
+           .menu_display_pow {
+            
+            background-image: url("rotor.png");
             background-size: contain;
          	background-repeat: no-repeat;
          	background-position: center center;
@@ -438,18 +524,33 @@
 </head>
 <body onload="init()">
 
-    <div id="menu" class="view">
+    <div id="menu_char" class="view default-view">
         <div class="button">
-            <div id="play" class="button_play"></div>
-            <div id="back" class="button_back"></div>
-            <div id ="display" class="menu_display"></div>
-            <div id="left" class="button_left"></div>
-            <div id="select" class="button_select"></div>
-            <div id="right" class="button_right"></div>
+            <div id ="display_char" class="menu_display_char"></div>
+            <div id="left_char" class="button_left"></div>
+            <div id="select_char" class="button_select"></div>
+            <div id="right_char" class="button_right"></div>
         </div>
     </div>
 
-   <div id="game"class="view default-view">
+    <div id="menu_pow" class="view ">
+        <div class="button">
+            <div id="back_pow" class="button_back"></div>
+            <div id="display_pow" class="menu_display_pow"></div>
+            <div id="left_pow" class="button_left"></div>
+            <div id="select_pow" class="button_select"></div>
+            <div id="right_pow" class="button_right"></div>
+        </div>
+    </div>
+
+    <div id="menu_ready" class="view">
+        <div class="button">
+            <div id="ready_play" class="button_play"></div>
+            <div id="ready_back" class="button_back"></div>
+        </div>
+    </div>
+
+   <div id="game"class="view">
         <div id="touchpad" class=button>
             <div id="butt" class="button_image"></div>
         </div>

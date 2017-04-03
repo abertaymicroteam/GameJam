@@ -14,6 +14,7 @@ public class MenuScript : MonoBehaviour
 
 	// Graphics
 	public List<SpriteRenderer> countdownNums = new List<SpriteRenderer> ();
+	public Sprite[] abilityGraphics;
 	float countdownTimer = 3.0f;
 	int currCountdown = 0;
 	private int prevCountdown = 0;
@@ -52,7 +53,13 @@ public class MenuScript : MonoBehaviour
 		gMan = GameObject.FindObjectOfType<GameManager> ();
 		canvas = GameObject.FindGameObjectWithTag ("Scores");
 	}
-	
+
+	public void UpdateAbilityGraphic(int i, int it){
+
+		SpriteRenderer abilityRend = ActiveGraphics[it].GetComponentsInChildren<SpriteRenderer> ()[1];
+		abilityRend.sprite = abilityGraphics [i];
+
+	}
 	// Update is called once per frame
 	void Update () 
 	{
