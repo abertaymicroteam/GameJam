@@ -244,9 +244,10 @@ public class KnobMovement : MonoBehaviour {
 			// Play death sound
 			audioMan.PlayDeath();
 			
+
 			// Set flag for game manager
 			destroyMe = true;
-			gMan.KillMe ();
+			gMan.KillMe (characterNumber);
 			
 			//set respawn position
 			SpawnLocation.Set(Random.Range(-6,6),Random.Range(-4,4), 0);

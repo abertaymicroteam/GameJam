@@ -27,7 +27,8 @@ public class GameManager : MonoBehaviour
     public List<GameObject> Abilities;
 	public GameObject[] Characters;
 	public List<int> TakenCharacters;
-	private int[] charNums = new int[8] {0, 0, 0, 0, 0, 0, 0, 0};
+    [SerializeField]
+	private int[] charNums = new int[8] {0, 1, 2, 3, 4, 5, 6, 7};
 	private float angle = 0.0f;
 	public float[] angles;
 	public int[] ID;
@@ -64,10 +65,12 @@ public class GameManager : MonoBehaviour
     //Character select
     private enum ControllerState { Char, Power, Ready, Game };
     private ControllerState[] controllerState = new ControllerState[8] { ControllerState.Char, ControllerState.Char, ControllerState.Char, ControllerState.Char, ControllerState.Char, ControllerState.Char, ControllerState.Char, ControllerState.Char };
+    [SerializeField]
     private int[] hoveredChars = new int[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
 	private int[] hoveredPow = new int[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
     private bool[] locked = new bool[8] { false, false, false, false, false, false, false, false };
-	private bool[] ready = new bool[8] { true, true, false, false, false, false, false, false };
+	private bool[] ready = new bool[8] { false, false, false, false, false, false, false, false };
+    private bool[] recievedMessage = new bool[8] { false, false, false, false, false, false, false, false };
 
     public float getAngle(int ID)
 	{
@@ -102,7 +105,12 @@ public class GameManager : MonoBehaviour
 		scores = GameObject.FindGameObjectWithTag ("Scores");
 
 		// Randomise character order
-		//ShuffleArray<int>(charNums);
+		ShuffleArray<int>(charNums);
+
+        for(int i = 0; i < 8; i ++)
+        {
+            hoveredChars[i] = charNums[i];
+        }
 	}
 
 	/// <summary>
@@ -141,11 +149,7 @@ public class GameManager : MonoBehaviour
 				// Increment connected players
 				connectedPlayers++;
 
-				// Send connection message to controller
-				JObject connectionMessage = new JObject ();
-				connectionMessage.Add ("state", (int)GameState);
-				connectionMessage.Add ("angle", 0);
-				AirConsole.instance.Message (device_id, connectionMessage);
+                StartCoroutine(StartMessage(device_id, connectedPlayers));
 				AirConsole.instance.SetActivePlayers (8);
 
 
@@ -225,6 +229,12 @@ public class GameManager : MonoBehaviour
     /// <param name="data">Data.</param>
     void OnMessage(int device_id, JToken data)
     {
+
+        if(data["title"].ToString() == "recieved")
+        {
+            recievedMessage[AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id)] = true;
+        }
+
         if (GameState == STATE.RESTART)
         {
             int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
@@ -419,7 +429,7 @@ public class GameManager : MonoBehaviour
 
                     if (data["button"].ToString() == "select")
                     {
-                        controllerState[it] = ControllerState.Power;
+                        controllerState[it] = ControllerState.Ready;
                         JObject newmsg = new JObject();
                         newmsg.Add("pow", 1);
                         AirConsole.instance.Message(ID[it], newmsg);
@@ -873,7 +883,7 @@ public class GameManager : MonoBehaviour
 		if ((int)angle != (int)prevAngle[iterator]) 
 		{
 			msg.Add ("angle", (int)(-angle));						//add rotation to msg
-			msg.Add ("charNo", character + 1);							//add char number to msg
+			//msg.Add ("charNo", character + 1);							//add char number to msg
             msg.Add("powUp", powpow);
 			msg.Add ("state", (int)GameState);
 			AirConsole.instance.Message (ID [iterator], msg);		//send message
@@ -898,8 +908,30 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	public void KillMe()
+	public void KillMe(int playerNumber)
 	{
+        int playnum = 0;
+        bool found = false;
+        foreach(int i in hoveredChars)
+        {
+            if(i == playerNumber)
+            {
+                found = true;
+            }
+            else
+            {
+                playnum++;
+            }
+            if (found)
+            {
+                break;
+            }
+        }
+        AirConsole.instance.ConvertPlayerNumberToDeviceId(playnum);
+        JObject deadzo = new JObject();
+        deadzo.Add("deadzo", 1);
+        AirConsole.instance.Message(AirConsole.instance.ConvertPlayerNumberToDeviceId(playerNumber), deadzo);
+        
 		destroyedPlayers++;
 	}
 
@@ -1051,6 +1083,25 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
+    private IEnumerator StartMessage(int device_id, int ID)
+    {
+        float timer = 0;
+
+        while(!recievedMessage[ID-1]){
+            timer += Time.deltaTime;
+            if(timer >= 0.1){
+                // Send connection message to controller
+                JObject connectionMessage = new JObject();
+                connectionMessage.Add("state", (int)GameState);
+                connectionMessage.Add("angle", 0);
+                connectionMessage.Add("charNo", hoveredChars[ID - 1] + 1);
+                AirConsole.instance.Message(device_id, connectionMessage);
+                timer = 0;
+            }
+            yield return null;
+        }
+    }
+
 	private IEnumerator SpawnPlayerInNewRound(int device_id)
 	{
 		while (GameState != STATE.RESTART) 
@@ -1115,12 +1166,13 @@ public class GameManager : MonoBehaviour
 			AirConsole.instance.Message (ID [iteratorl], statemsg);		//send message
 			debugMessage(statemsg, ID[iteratorl]);					//debug						
 			statemsg.ClearItems();	
-
 			//increase iterator
 			iteratorl++;
 		}
 
 	}
+
+   
 
     void OnAdShow()
     {
