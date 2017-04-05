@@ -50,8 +50,9 @@ public class ChargeScript : MonoBehaviour
         {
             if (!rotated)
             {
+
                 // rotate particle system and rotor
-                transform.rotation = new Quaternion(transform.localRotation.x, transform.localRotation.y, -angle * Mathf.Deg2Rad, 1.0f);
+                transform.rotation = Quaternion.Euler(0, 0, angle);
                 Debug.Log("Rotation " + angle);
                 rotated = true;
 
@@ -92,5 +93,10 @@ public class ChargeScript : MonoBehaviour
         {
             timer = 0.0f;
         }
+    }
+
+    public void SetAngle(float angle_)
+    {
+        angle = angle_;
     }
 }

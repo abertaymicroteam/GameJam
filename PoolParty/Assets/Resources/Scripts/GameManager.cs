@@ -139,7 +139,7 @@ public class GameManager : MonoBehaviour
                 KnobMovement newScript = newPlayer.GetComponent<KnobMovement>();
 				newScript.characterNumber = character;
 				newScript.SetID (connectedPlayers);
-                newScript.ability = Abilities[1];
+                newScript.ability = Abilities[0];
 				ID [connectedPlayers] = device_id;
 				Players.Add (newPlayer);
 
@@ -230,10 +230,7 @@ public class GameManager : MonoBehaviour
     void OnMessage(int device_id, JToken data)
     {
 
-        if(data["title"].ToString() == "recieved")
-        {
-            recievedMessage[AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id)] = true;
-        }
+
 
         if (GameState == STATE.RESTART)
         {
@@ -247,19 +244,12 @@ public class GameManager : MonoBehaviour
         else if (GameState == STATE.MENU)
         {
 
-            bool play = true;
-            for (int i = 0; i < connectedPlayers; i++)
+            if (data["title"] != null)
             {
-                if (ready[i] == false)
+                if (data["title"].ToString() == "recieved")
                 {
-                    play = false;
+                    recievedMessage[AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id)] = true;
                 }
-            }
-            if (play)
-            {
-                JObject newmsg = new JObject();
-                newmsg.Add("No", 1);
-                AirConsole.instance.Message(ID[0], newmsg);
             }
 
             if (data["button"] != null)
@@ -307,7 +297,8 @@ public class GameManager : MonoBehaviour
                                 }
 
                                 JObject availableMsg = new JObject();
-                                if (TakenCharacters.Contains(hoveredChars[it])) { 
+                                if (TakenCharacters.Contains(hoveredChars[it]))
+                                {
                                     availableMsg.Add("available", 1);
                                 }
                                 else
@@ -433,7 +424,6 @@ public class GameManager : MonoBehaviour
                         JObject newmsg = new JObject();
                         newmsg.Add("pow", 1);
                         AirConsole.instance.Message(ID[it], newmsg);
-                        controllerState[it] = ControllerState.Ready;
                         ready[it] = true;
                     }
 
@@ -448,25 +438,27 @@ public class GameManager : MonoBehaviour
                         ready[it] = false;
                     }
 
-                 
-                        if (data["button"].ToString() == "play")
+
+                    if (data["button"].ToString() == "play")
                     {
-                      
-                       
 
-                            if (connectedPlayers != prevConnectedPlayers)
-                            {
-                                MessageAll();
-                                prevConnectedPlayers = connectedPlayers;
-                            }
-                            StartGame();
 
-                      
+
+                        if (connectedPlayers != prevConnectedPlayers)
+                        {
+                            MessageAll();
+                            prevConnectedPlayers = connectedPlayers;
+                        }
+                        StartGame();
+
+
                     }
                 }
 
+               
 
             }
+            
         }
         else if (GameState == STATE.READY)
         {
@@ -476,48 +468,55 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            
+            if (data["button"] != null)
+            {
+                    if (data["button"].ToString() == "pow")
+                    {
+                        int playerNumber = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
+                        Players[playerNumber].GetComponent<KnobMovement>().useAbility();
+                    }
+                }
+
             if (data["move"] != null)
             {
-                //if a player is active 
-                int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
-                if (active_player != -1)
+                if (data["move"] != null)
                 {
-                    //get the angle information from the players tap
-                    angle = (float)data["move"];
+                    //if a player is active 
+                    int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
+                    if (active_player != -1)
+                    {
+                        //get the angle information from the players tap
+                        angle = (float)data["move"];
 
-                    //calculate were to apply force to the player
-                    if (angle > 0)
-                    {
-                        angle = 180 - angle;
-                    }
-                    else if (angle < 0)
-                    {
-                        angle -= 180;
-                        if (angle < 0)
+                        //calculate were to apply force to the player
+                        if (angle > 0)
                         {
-                            angle += 360;
+                            angle = 180 - angle;
                         }
-                        angle = 360 - angle;
-                    }
+                        else if (angle < 0)
+                        {
+                            angle -= 180;
+                            if (angle < 0)
+                            {
+                                angle += 360;
+                            }
+                            angle = 360 - angle;
+                        }
 
-                    //store information on where to spawn splash
-                    int it = 0;
-                    foreach (int i in ID)
-                    {
-                        if (device_id == i)
+                        //store information on where to spawn splash
+                        int it = 0;
+                        foreach (int i in ID)
                         {
-                            angles[it] = angle;
+                            if (device_id == i)
+                            {
+                                angles[it] = angle;
+                            }
+                            it++;
                         }
-                        it++;
                     }
                 }
             }
-            else if (data["button"].ToString() == "pow")
-            {
-               int playerNumber = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
-               Players[playerNumber].GetComponent<KnobMovement>().useAbility();
-            }
-            
         }
     }
 
@@ -592,6 +591,30 @@ public class GameManager : MonoBehaviour
 
 	void FixedUpdate () 
 	{
+
+        if (GameState == STATE.MENU)
+        {
+
+            bool play = true;
+            if (AirConsole.instance.IsAirConsoleUnityPluginReady()) { 
+                for (int i = 0; i < connectedPlayers; i++)
+                {
+                    if (ready[i] == false)
+                    {
+                        play = false;
+                    }
+                }
+                if (play)
+                {
+                    JObject newmsg = new JObject();
+                    newmsg.Add("No", 1);
+                    if (ID[2] != 0) { 
+                    AirConsole.instance.Message(ID[0], newmsg);
+                    }
+                }
+            }
+        }
+
 		if (GameState == STATE.READY && connectedPlayers != prevConnectedPlayers) 
 		{
 			MessageAll ();
@@ -599,8 +622,9 @@ public class GameManager : MonoBehaviour
 		}
 		if (GameState == STATE.GAME) 
 		{
-			// Check if there is a winner yet
-			if (destroyedPlayers == (connectedPlayers - 1) && destroyedPlayers > 0)
+            
+            // Check if there is a winner yet
+            if (destroyedPlayers == (connectedPlayers - 1) && destroyedPlayers > 0)
             {
                 // Set winner bool
                 winner = true;
@@ -1086,10 +1110,12 @@ public class GameManager : MonoBehaviour
     private IEnumerator StartMessage(int device_id, int ID)
     {
         float timer = 0;
-
-        while(!recievedMessage[ID-1]){
+        
+        while (!recievedMessage[ID - 1])
+        {
             timer += Time.deltaTime;
-            if(timer >= 0.1){
+            if (timer >= 0.1)
+            {
                 // Send connection message to controller
                 JObject connectionMessage = new JObject();
                 connectionMessage.Add("state", (int)GameState);
@@ -1100,6 +1126,7 @@ public class GameManager : MonoBehaviour
             }
             yield return null;
         }
+    
     }
 
 	private IEnumerator SpawnPlayerInNewRound(int device_id)

@@ -189,6 +189,10 @@ public class KnobMovement : MonoBehaviour {
             {
                 newAbility.GetComponent<BombScript>().SetOwner(gameObject.GetInstanceID());
             }
+            if (newAbility.GetComponent<ChargeScript>() != null)
+            {
+                newAbility.GetComponent<ChargeScript>().SetAngle(gMan.getAngle(playerID));
+            }
             abilityAvailable = false;
             chargeLevel = CHARGE_EMPTY;
        

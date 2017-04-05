@@ -92,10 +92,10 @@
               }
 
               if (data.deadzo) {
-                  navigator.vibrate(5000);
+                  navigator.vibrate(500);
               }
 
-              if (data.powUp >= 1000) {
+              if (data.powUp >= 100) {
                   powReady = true;
                  
               }
@@ -106,7 +106,7 @@
               if(powReady){
                   var daspow = document.getElementById("powerbutt");
                   daspow.style.backgroundImage = "url(ability1.png)";
-                  navigator.vibrate(10);
+                  navigator.vibrate(100);
               } else {
                   var daspow = document.getElementById("powerbutt");
                   daspow.style.backgroundImage = "url(ability2.png)";
