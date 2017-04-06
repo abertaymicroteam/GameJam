@@ -98,7 +98,7 @@ public class KnobMovement : MonoBehaviour {
 		}
 
         // Increment charge timer
-        if (!gMan.winner)
+        if (!gMan.winner && !destroyMe)
         {
             if (chargeTimer > 0.0f && !abilityAvailable)
             {
