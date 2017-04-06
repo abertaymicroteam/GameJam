@@ -177,7 +177,10 @@ public class KnobMovement : MonoBehaviour {
                 tapTimer = 0;
             }
 		}
+    }
 
+    public void useAbility()
+    {
         // Spawn ability when ready
         if (abilityAvailable && gMan.GameState == GameManager.STATE.GAME)
         {
@@ -186,10 +189,16 @@ public class KnobMovement : MonoBehaviour {
             {
                 newAbility.GetComponent<BombScript>().SetOwner(gameObject.GetInstanceID());
             }
+            if (newAbility.GetComponent<ChargeScript>() != null)
+            {
+                newAbility.GetComponent<ChargeScript>().SetAngle(gMan.getAngle(playerID));
+            }
             abilityAvailable = false;
             chargeLevel = CHARGE_EMPTY;
+       
         }
-	}
+      
+    }
 
 	Vector2 CirclePos(Vector2 centre, float radius, float angle)
 	{
@@ -239,9 +248,10 @@ public class KnobMovement : MonoBehaviour {
 			// Play death sound
 			audioMan.PlayDeath();
 			
+
 			// Set flag for game manager
 			destroyMe = true;
-			gMan.KillMe ();
+			gMan.KillMe (characterNumber);
 			
 			//set respawn position
 			SpawnLocation.Set(Random.Range(-6,6),Random.Range(-4,4), 0);

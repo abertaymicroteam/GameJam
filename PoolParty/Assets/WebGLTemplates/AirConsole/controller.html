@@ -48,18 +48,23 @@
       var pow_button_back = document.getElementById('back_pow');
       pow_button_back.addEventListener('touchstart', back);
 
-      //  //Ready
-      var ready_button_back = document.getElementById('ready_play');
-      ready_button_back.addEventListener('touchstart', play);
+      var powready = false;
+      
       var ready_button_play = document.getElementById('ready_back');
       ready_button_play.addEventListener('touchstart', back);
 
       //set up the touch response to use the move function
       var button = document.getElementById('touchpad');
       button.addEventListener('touchstart', move);
+      var pow_button = document.getElementById('powerbutt');
+      
 
       //get the button
       var url = document.getElementById("butt");    
+      pow_button.addEventListener('touchstart', powS);
+
+      var powNd = document.getElementById("powN");
+      powNd.style.backgroundImage = "url(ChargeName.png)";
 
       airconsole.onMessage = function (from, data) {
 
@@ -67,43 +72,102 @@
           {
               
               if (data.char) {
-          	       state = 1;
-          	       vm.show("menu_pow");
+                  state = 1;
+                  vm.show("menu_pow");
               }
 
-          	  if(data.pow){
-          	       state = 2;
-          	       vm.show("menu_ready");
-          	  }
+              if(data.pow){
+                  state = 2;
+                  vm.show("menu_ready");
+              }
 
-          	  if (data.No) {
-          	      playerNumber = data.No;
-          	  }
+              
 
-          
-              if (data.charNo) {
-                switch (data.charNo) {
-                 case 1: url.style.backgroundImage = "url(phil.png)";
+              if (data.No) {
+          	   
+                  var ready_button_back = document.getElementById('ready_play');
+                  ready_button_back.addEventListener('touchstart', play);
+                  ready_button_back.style.backgroundImage = "url(Play.png)";
+ 
+              }
+
+              if (data.deadzo) {
+                  navigator.vibrate(500);
+              }
+
+              if (data.powUp >= 100) {
+                  powReady = true;
+                 
+              }
+              else {
+                  powReady = false;
+              }
+
+              if(powReady){
+                  var daspow = document.getElementById("powerbutt");
+                  daspow.style.backgroundImage = "url(ability1.png)";
+                  navigator.vibrate(100);
+              } else {
+                  var daspow = document.getElementById("powerbutt");
+                  daspow.style.backgroundImage = "url(ability2.png)";
+              }
+
+
+          	  if (data.available ) {
+          	      if (data.available == 1) {
+          	          var dastaken = document.getElementById("char_avail");
+          	          dastaken.style.backgroundImage = "url(taken.png)";
+          	      } else {
+          	         var dastaken = document.getElementById("char_avail");
+          	          dastaken.style.backgroundImage = "url(available.png)";
+          	      }
+          	  }
+             
+
+          	  if (data.charNo) {
+          	      var charDisplay = document.getElementById("display_char");
+          	      var charDisplayName = document.getElementById("charN");
+          	      characterSelect = data.charNo;
+                  switch (data.charNo) {
+                      case 1: url.style.backgroundImage = "url(phil.png)";
+                          charDisplay.style.backgroundImage = "url(phil.png)";
+                          charDisplayName.style.backgroundImage = "url(philName.png)";
                       break;
-                 case 2: url.style.backgroundImage = "url(jamie.png)";
+                      case 2: url.style.backgroundImage = "url(jamie.png)";
+                          charDisplay.style.backgroundImage = "url(jamie.png)";
+                          charDisplayName.style.backgroundImage = "url(jamieName.png)";
                       break;
-                 case 3: url.style.backgroundImage = "url(wallace.png)";
+                      case 3: url.style.backgroundImage = "url(wallace.png)";
+                          charDisplay.style.backgroundImage = "url(wallace.png)";
+                          charDisplayName.style.backgroundImage = "url(wallaceName.png)";
                       break;
-                 case 4: url.style.backgroundImage = "url(bertha.png)";
+                      case 4: url.style.backgroundImage = "url(bertha.png)";
+                          charDisplay.style.backgroundImage = "url(bertha.png)";
+                          charDisplayName.style.backgroundImage = "url(berthaName.png)";
                       break;
-                 case 5: url.style.backgroundImage = "url(adrian.png)";
+                      case 5: url.style.backgroundImage = "url(adrian.png)";
+                          charDisplay.style.backgroundImage = "url(adrian.png)";
+                          charDisplayName.style.backgroundImage = "url(adrianName.png)";
                       break;
-                 case 6: url.style.backgroundImage = "url(betty.png)";
+                      case 6: url.style.backgroundImage = "url(betty.png)";
+                          charDisplay.style.backgroundImage = "url(betty.png)";
+                          charDisplayName.style.backgroundImage = "url(bettyName.png)";
                       break;
-                 case 7: url.style.backgroundImage = "url(mike.png)";
+                      case 7: url.style.backgroundImage = "url(mike.png)";
+                          charDisplay.style.backgroundImage = "url(mike.png)";
+                          charDisplayName.style.backgroundImage = "url(mikeName.png)";
                       break;
-                 case 8: url.style.backgroundImage = "url(tam.png)";
+                      case 8: url.style.backgroundImage = "url(tam.png)";
+                          charDisplay.style.backgroundImage = "url(tam.png)";
+                          charDisplayName.style.backgroundImage = "url(tamName.png)";
                       break;
                  }
-                 if (data.angle) {
-                    url.style.transform = "rotate(" + data.angle + "deg)";
-                 }
-              }       
+                  airconsole.message(AirConsole.SCREEN, { title: "recieved" });
+          	  }
+
+          	  if (data.angle) {
+          	      url.style.transform = "rotate(" + data.angle + "deg)";
+          	  }
           }
       }
   
@@ -133,9 +197,16 @@
    
     }
 
+    function powS(event) {
+        airconsole.message(AirConsole.SCREEN, { title: "game_button", button: "pow" });
+        //var daspow = document.getElementById("powerbutt");
+        //daspow.style.backgroundImage = "url(ability2.png)";
+    }
+
     function left(event) {
         switch(state){
-            case 0:        
+            case 0:
+                           
                             var text = "default";
 
                             if (characterSelect > 1) {
@@ -145,34 +216,43 @@
                             }
 
                             var charDisplay = document.getElementById("display_char");
+                            var charDisplayName = document.getElementById("charN");
                             switch (characterSelect) {
                                 case 1: charDisplay.style.backgroundImage = "url(phil.png)";
+                                    charDisplayName.style.backgroundImage = "url(philName.png)";
                                     text = "Phil";
                                     break;
                                 case 2: charDisplay.style.backgroundImage = "url(jamie.png)";
+                                    charDisplayName.style.backgroundImage = "url(jamieName.png)";
                                     text = "Jamie";
                                     break;
                                 case 3: charDisplay.style.backgroundImage = "url(wallace.png)";
+                                    charDisplayName.style.backgroundImage = "url(wallaceName.png)";
                                     text = "Wallace";
                                     break;
                                 case 4: charDisplay.style.backgroundImage = "url(bertha.png)";
+                                    charDisplayName.style.backgroundImage = "url(berthaName.png)";
                                     text = "Bertha";
                                     break;
                                 case 5: charDisplay.style.backgroundImage = "url(adrian.png)";
+                                    charDisplayName.style.backgroundImage = "url(adrianName.png)";
                                     text = "Adrian";
                                     break;
                                 case 6: charDisplay.style.backgroundImage = "url(betty.png)";
+                                    charDisplayName.style.backgroundImage = "url(bettyName.png)";
                                     text = "Betty";
                                     break;
                                 case 7: charDisplay.style.backgroundImage = "url(mike.png)";
+                                    charDisplayName.style.backgroundImage = "url(mikeName.png)";
                                     text = "Mike";
                                     break;
                                 case 8: charDisplay.style.backgroundImage = "url(tam.png)";
+                                    charDisplayName.style.backgroundImage = "url(tamName.png)";
                                     text = "Tam";
                                     break;
                               }   
 
-                              document.getElementById("display_char").textContent = text;
+                       
 
                         break;
             case 1:
@@ -184,20 +264,22 @@
                         }
 
                         var powDisplay = document.getElementById("display_pow");
-
+                        var powN = document.getElementById("powN");
                         switch (powerupSelected) {
                             case 1: powDisplay.style.backgroundImage = "url(rotor.png)";
-                                text = "Charge";
+                                powN.style.backgroundImage = "url(ChargeName.png)";
+                                text = "charge";
                                 break;
                             case 2: powDisplay.style.backgroundImage = "url(shield.png)";
+                                powN.style.backgroundImage = "url(JugName.png)";
                                 text = "Juggernaut";
                                 break;
                             case 3: powDisplay.style.backgroundImage = "url(bomb.png)";
+                                powN.style.backgroundImage = "url(MineName.png)";
                                 text = "Mine";
                                 break;
                         }
 
-                        document.getElementById("display_pow").textContent = text;
 
                         break;                       
         }
@@ -247,35 +329,42 @@
                 }
 
                 var charDisplay = document.getElementById("display_char");
-              
+                var charDisplayName = document.getElementById("charN");
                 switch (characterSelect) {
                     case 1: charDisplay.style.backgroundImage = "url(phil.png)";
+                        charDisplayName.style.backgroundImage = "url(philName.png)";
                         text = "Phil";
                         break;
                     case 2: charDisplay.style.backgroundImage = "url(jamie.png)";
+                        charDisplayName.style.backgroundImage = "url(jamieName.png)";
                         text = "Jamie";
                         break;
                     case 3: charDisplay.style.backgroundImage = "url(wallace.png)";
+                        charDisplayName.style.backgroundImage = "url(wallaceName.png)";
                         text = "Wallace";
                         break;
                     case 4: charDisplay.style.backgroundImage = "url(bertha.png)";
+                        charDisplayName.style.backgroundImage = "url(berthaName.png)";
                         text = "Bertha";
                         break;
                     case 5: charDisplay.style.backgroundImage = "url(adrian.png)";
+                        charDisplayName.style.backgroundImage = "url(adrianName.png)";
                         text = "Adrian";
                         break;
                     case 6: charDisplay.style.backgroundImage = "url(betty.png)";
+                        charDisplayName.style.backgroundImage = "url(bettyName.png)";
                         text = "Betty";
                         break;
                     case 7: charDisplay.style.backgroundImage = "url(mike.png)";
+                        charDisplayName.style.backgroundImage = "url(mikeName.png)";
                         text = "Mike";
                         break;
                     case 8: charDisplay.style.backgroundImage = "url(tam.png)";
+                        charDisplayName.style.backgroundImage = "url(tamName.png)";
                         text = "Tam";
                         break;
                 }
 
-                document.getElementById("display_char").textContent = text;
 
                 break;
             case 1:
@@ -288,20 +377,23 @@
                 }
 
                 var powDisplay = document.getElementById("display_pow");
-
+                var powN = document.getElementById("powN");
                 switch (powerupSelected) {
                     case 1: powDisplay.style.backgroundImage = "url(rotor.png)";
+                        powN.style.backgroundImage = "url(ChargeName.png)";
                         text = "charge";
                         break;
                     case 2: powDisplay.style.backgroundImage = "url(shield.png)";
+                        powN.style.backgroundImage = "url(JugName.png)";
                         text = "Juggernaut";
                         break;
                     case 3: powDisplay.style.backgroundImage = "url(bomb.png)";
+                        powN.style.backgroundImage = "url(MineName.png)";
                         text = "Mine";
                         break;
                 }
 
-                document.getElementById("display_pow").textContent = text;
+
 
                 break;
 
@@ -364,7 +456,6 @@
         }
 
         .button_image {
-            content: "text";
             background-image: url("loading.png");
             background-size: 150px;
          	background-repeat: no-repeat;
@@ -406,12 +497,43 @@
             position: absolute;
             top: 20%;
             left: 50%;
-            margin-top: -75px;
-            margin-left: -125px;
-            width: 250px;
-            height: 250px;
+            margin-top: -25px;
+            margin-left: -80px;
+            width: 175px;
+            height: 175px;
 
             transform: rotate(0deg) ;
+        }
+        .charN {
+            
+            background-size: contain;
+         	background-repeat: no-repeat;
+         	background-position: center center;
+            background-color: transparent;
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-left: -65px;
+       
+            height: 15%;
+            width: 40%;
+        }
+        .menu_display_char_name{
+
+            background-image: url("available.png");
+            background-size: contain;
+         	background-repeat: no-repeat;
+         	background-position: center center;
+            background-color: transparent;
+
+            position: absolute;
+            top: 5%;
+            left: 50%;
+            margin-left: -52px;
+       
+            height: 10%;
+            width: 30%;
         }
            .menu_display_pow {
             
@@ -481,7 +603,7 @@
         }
 
         .button_play {
-            background-image: url("Play.png");
+           
             background-size: contain;
          	background-repeat: no-repeat;
          	background-position: center center;
@@ -494,6 +616,21 @@
 
             width: 80px;
             height: 80px;
+        }
+        .ready_button{
+            background-image: url("ready.png");
+            background-size: contain;
+         	background-repeat: no-repeat;
+         	background-position: center center;
+            background-color: transparent;
+
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -160%);
+
+            width: 250px;
+            height: 100px;
         }
 
         .button_back {
@@ -520,6 +657,21 @@
             margin-top: -8px;
             color: #777;
         }
+
+        .power_button{
+            background-size: contain;
+            background-image: url("ability2.png");
+            background-repeat: no-repeat;
+         	background-position: center center;
+            background-color: transparent;
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            width: 50px;
+            height: 50px;
+       
+        }
+
     </style>
 </head>
 <body onload="init()">
@@ -527,6 +679,8 @@
     <div id="menu_char" class="view default-view">
         <div class="button">
             <div id ="display_char" class="menu_display_char"></div>
+            <div id="char_avail" class="menu_display_char_name"></div>
+            <div id="charN" class="charN"></div>
             <div id="left_char" class="button_left"></div>
             <div id="select_char" class="button_select"></div>
             <div id="right_char" class="button_right"></div>
@@ -537,6 +691,7 @@
         <div class="button">
             <div id="back_pow" class="button_back"></div>
             <div id="display_pow" class="menu_display_pow"></div>
+            <div id="powN" class="charN"></div>
             <div id="left_pow" class="button_left"></div>
             <div id="select_pow" class="button_select"></div>
             <div id="right_pow" class="button_right"></div>
@@ -545,6 +700,7 @@
 
     <div id="menu_ready" class="view">
         <div class="button">
+            <div id="ready" class="ready_button"></div>
             <div id="ready_play" class="button_play"></div>
             <div id="ready_back" class="button_back"></div>
         </div>
@@ -554,6 +710,7 @@
         <div id="touchpad" class=button>
             <div id="butt" class="button_image"></div>
         </div>
+       <div id="powerbutt" class="power_button"></div>
     </div>
 
     
