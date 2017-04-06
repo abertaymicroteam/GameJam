@@ -454,30 +454,26 @@ public class GameManager : MonoBehaviour
 
                     }
                 }
-
-               
-
-            }
-            
+            }            
         }
         else if (GameState == STATE.READY)
         {
             StartGame();
-
-
         }
         else
         {
             
             if (data["button"] != null)
             {
-                    if (data["button"].ToString() == "pow")
-                    {
-                        int playerNumber = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
-                        Players[playerNumber].GetComponent<KnobMovement>().useAbility();
+                if (data["button"].ToString() == "pow")
+                {
+                    int playerNumber = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
+                    if (!Players[playerNumber].GetComponent<KnobMovement>().destroyMe)
+                    { // Activate ability if player is alive
+                        Players[playerNumber].GetComponent<KnobMovement>().UseAbility();
                     }
                 }
-
+            }
             if (data["move"] != null)
             {
                 if (data["move"] != null)

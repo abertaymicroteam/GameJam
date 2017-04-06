@@ -179,7 +179,7 @@ public class KnobMovement : MonoBehaviour {
 		}
     }
 
-    public void useAbility()
+    public void UseAbility()
     {
         // Spawn ability when ready
         if (abilityAvailable && gMan.GameState == GameManager.STATE.GAME)
@@ -246,8 +246,7 @@ public class KnobMovement : MonoBehaviour {
             lastCollision.gameObject.GetComponent<KnobMovement>().chargeLevel += killBoost;
 			
 			// Play death sound
-			audioMan.PlayDeath();
-			
+			audioMan.PlayDeath();			
 
 			// Set flag for game manager
 			destroyMe = true;
@@ -312,6 +311,12 @@ public class KnobMovement : MonoBehaviour {
 
             // Boost charge timer for being involved in the fight!
             chargeLevel += bumpBoost;
+
+            // Turn off charge once hit another player
+            if (GetComponentInChildren<ChargeScript>() != null)
+            {
+                GetComponentInChildren<ChargeScript>().timer = 0.0f;
+            }
 
             // Store last collision for kill reward
             lastCollision = collision;

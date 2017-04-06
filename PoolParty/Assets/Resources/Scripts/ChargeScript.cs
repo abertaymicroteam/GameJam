@@ -11,13 +11,13 @@ public class ChargeScript : MonoBehaviour
     private AudioManager audioMan;
 
     // Attributes
-    float timer = 3.0f;
+    public float timer = 3.0f;
     float forceTimer = 0.1f;
     public PhysicsMaterial2D chargeMaterial;
     private PhysicsMaterial2D defaultMaterial;
     float defaultDrag;
     bool forceApplied = false;
-    public float impulse = 20.0f;
+    public float impulse = 100.0f;
     public bool fire = false;
     private bool rotated = false;
     public Vector3 direction = Vector3.zero;
@@ -57,8 +57,8 @@ public class ChargeScript : MonoBehaviour
                 rotated = true;
 
                 // Start rotor animation
-                Animator rotorAnimation = GetComponentInChildren<Animator>(true);
-                rotorAnimation.enabled = true;
+                //Animator rotorAnimation = GetComponentInChildren<Animator>(true);
+                //rotorAnimation.enabled = true;
 
                 // Start particle systems
                 ParticleSystem[] systems = GetComponentsInChildren<ParticleSystem>();
@@ -74,10 +74,11 @@ public class ChargeScript : MonoBehaviour
             if (timer > 0.0f)
             {
                 timer -= Time.deltaTime;
-               // if (forceTimer > 0.0f)
+                //if (!forceApplied)
                 {
                    // forceTimer -= Time.deltaTime;
-                    myPlayerScript.rigBody.AddForce(direction * impulse, ForceMode2D.Force);
+                    myPlayerScript.rigBody.AddForce(direction * impulse, ForceMode2D.Impulse);
+                   // forceApplied = true;
                 }
             }
             if (timer <= 0.0f)
