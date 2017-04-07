@@ -17,7 +17,7 @@ public class ChargeScript : MonoBehaviour
     private PhysicsMaterial2D defaultMaterial;
     float defaultDrag;
     bool forceApplied = false;
-    public float impulse = 100.0f;
+    public float impulse = 25.0f;
     public bool fire = false;
     private bool rotated = false;
     public Vector3 direction = Vector3.zero;
@@ -52,7 +52,7 @@ public class ChargeScript : MonoBehaviour
             {
 
                 // rotate particle system and rotor
-                transform.rotation = Quaternion.Euler(0, 0, angle);
+                transform.rotation = Quaternion.Euler(0, 0, -angle);
                 Debug.Log("Rotation " + angle);
                 rotated = true;
 

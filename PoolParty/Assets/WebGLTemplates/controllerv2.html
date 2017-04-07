@@ -83,16 +83,15 @@
 
               
 
-              if (data.No) {
-          	   
+              if (data.No) {          	   
                   var ready_button_back = document.getElementById('ready_play');
                   ready_button_back.addEventListener('touchstart', play);
                   ready_button_back.style.backgroundImage = "url(Play.png)";
- 
+                  airconsole.message(AirConsole.SCREEN, { title: "recievedPlay" });
               }
 
               if (data.deadzo) {
-                  navigator.vibrate(500);
+                  //navigator.vibrate(500);
               }
 
               if (data.powUp >= 100) {
@@ -106,8 +105,10 @@
               if(powReady){
                   var daspow = document.getElementById("powerbutt");
                   daspow.style.backgroundImage = "url(ability1.png)";
-                  navigator.vibrate(100);
-              } else {
+                 // navigator.vibrate(100);
+              }
+              else
+              {
                   var daspow = document.getElementById("powerbutt");
                   daspow.style.backgroundImage = "url(ability2.png)";
               }
@@ -162,7 +163,7 @@
                           charDisplayName.style.backgroundImage = "url(tamName.png)";
                       break;
                  }
-                  airconsole.message(AirConsole.SCREEN, { title: "recieved" });
+                  airconsole.message(AirConsole.SCREEN, { title: "recievedChar" });
           	  }
 
           	  if (data.angle) {
@@ -463,7 +464,7 @@
             background-color: transparent;
 
             position: absolute;
-            top: 50%;
+            top: 45%;
             left: 50%;
             margin-top: -75px;
             margin-left: -75px;

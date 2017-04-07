@@ -315,7 +315,10 @@ public class KnobMovement : MonoBehaviour {
             // Turn off charge once hit another player
             if (GetComponentInChildren<ChargeScript>() != null)
             {
-                GetComponentInChildren<ChargeScript>().timer = 0.0f;
+                if (GetComponentInChildren<ChargeScript>().fire)
+                {
+                    GetComponentInChildren<ChargeScript>().timer = 0.0f;
+                }
             }
 
             // Store last collision for kill reward

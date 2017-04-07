@@ -110,8 +110,14 @@ public class BombScript : MonoBehaviour
             direction.Normalize();
 
             // Define force of explosion
-            float force = 100.0f;
+            float force = 150.0f;
             float maxDistance = 7.5f; // The distance within which to apply explosive force
+
+            // Check if player had charge activated
+            if(collider.gameObject.GetComponentInChildren<ChargeScript>() != null)
+            {
+                collider.gameObject.GetComponentInChildren<ChargeScript>().timer = 0.0f;
+            }
 
             // Send player flying!
             collider.attachedRigidbody.AddForce(direction * force, ForceMode2D.Impulse);

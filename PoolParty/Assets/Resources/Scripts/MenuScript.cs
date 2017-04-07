@@ -151,6 +151,12 @@ public class MenuScript : MonoBehaviour
         ActiveGraphics[playerNumber].GetComponent<SpriteRenderer>().sprite = ConnectGraphicSprites[character];
 	}
 
+    public void HideAbilitySprite(int playerNumber)
+    {
+        SpriteRenderer abilitySprite =  ActiveGraphics[playerNumber].GetComponentsInChildren<SpriteRenderer>()[1];
+        abilitySprite.enabled = false;
+    }
+
 	public void ShowScores()
 	{
 		foreach (GameObject player in gMan.Players) 

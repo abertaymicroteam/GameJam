@@ -71,6 +71,7 @@ public class GameManager : MonoBehaviour
     private bool[] locked = new bool[8] { false, false, false, false, false, false, false, false };
 	private bool[] ready = new bool[8] { false, false, false, false, false, false, false, false };
     private bool[] recievedMessage = new bool[8] { false, false, false, false, false, false, false, false };
+    private bool recievedPlay = false;
 
     public float getAngle(int ID)
 	{
@@ -229,9 +230,6 @@ public class GameManager : MonoBehaviour
     /// <param name="data">Data.</param>
     void OnMessage(int device_id, JToken data)
     {
-
-
-
         if (GameState == STATE.RESTART)
         {
             int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
@@ -241,14 +239,19 @@ public class GameManager : MonoBehaviour
                 GameState = STATE.GAME;
             }
         }
-        else if (GameState == STATE.MENU)
+        else if (GameState == STATE.MENU || GameState == STATE.READY)
         {
 
             if (data["title"] != null)
             {
-                if (data["title"].ToString() == "recieved")
+                if (data["title"].ToString() == "recievedChar")
                 {
                     recievedMessage[AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id)] = true;
+                }
+
+                if (data["title"].ToString() == "recievedPlay")
+                {
+                    recievedPlay = true;
                 }
             }
 
@@ -285,7 +288,8 @@ public class GameManager : MonoBehaviour
                             {
                                 // Get current character information
                                 GameObject currentPlayer = Players[playerNumber];
-                                int currCharacter = currentPlayer.GetComponent<KnobMovement>().characterNumber;
+                                KnobMovement currentPlayerScript = currentPlayer.GetComponent<KnobMovement>();
+                                int currCharacter = currentPlayerScript.characterNumber;
                                 int newCharacter = -1;
                                 if (currCharacter > 0)
                                 {
@@ -310,8 +314,11 @@ public class GameManager : MonoBehaviour
 
                                 // Create new player
                                 GameObject newPlayer = Instantiate(Characters[newCharacter], SpawnLocation, Quaternion.identity) as GameObject;
-                                newPlayer.GetComponent<KnobMovement>().characterNumber = newCharacter;
-                                newPlayer.GetComponent<KnobMovement>().SetID(playerNumber);
+                                KnobMovement newPlayerScript = newPlayer.GetComponent<KnobMovement>();
+                                newPlayerScript.characterNumber = newCharacter;
+                                newPlayerScript.SetID(playerNumber);
+                                newPlayerScript.ability = currentPlayerScript.ability;
+
                                 //ID [playerNumber] = device_id;
                                 Players[playerNumber] = newPlayer;
 
@@ -336,7 +343,8 @@ public class GameManager : MonoBehaviour
                             {
                                 // Get current character information
                                 GameObject currentPlayer = Players[playerNumber];
-                                int currCharacter = currentPlayer.GetComponent<KnobMovement>().characterNumber;
+                                KnobMovement currentPlayerScript = currentPlayer.GetComponent<KnobMovement>();
+                                int currCharacter = currentPlayerScript.characterNumber;
                                 int newCharacter = -1;
                                 if (currCharacter < 7)
                                 {
@@ -361,8 +369,11 @@ public class GameManager : MonoBehaviour
 
                                 // Create new player
                                 GameObject newPlayer = Instantiate(Characters[newCharacter], SpawnLocation, Quaternion.identity) as GameObject;
-                                newPlayer.GetComponent<KnobMovement>().characterNumber = newCharacter;
-                                newPlayer.GetComponent<KnobMovement>().SetID(playerNumber);
+                                KnobMovement newPlayerScript = newPlayer.GetComponent<KnobMovement>();
+                                newPlayerScript.characterNumber = newCharacter;
+                                newPlayerScript.SetID(playerNumber);
+                                newPlayerScript.ability = currentPlayerScript.ability;
+
                                 //ID [playerNumber] = device_id;
                                 Players[playerNumber] = newPlayer;
 
@@ -441,24 +452,19 @@ public class GameManager : MonoBehaviour
 
                     if (data["button"].ToString() == "play")
                     {
-
-
-
                         if (connectedPlayers != prevConnectedPlayers)
                         {
                             MessageAll();
                             prevConnectedPlayers = connectedPlayers;
                         }
                         StartGame();
-
-
                     }
                 }
             }            
         }
         else if (GameState == STATE.READY)
         {
-            StartGame();
+         //   StartGame();
         }
         else
         {
@@ -588,11 +594,12 @@ public class GameManager : MonoBehaviour
 	void FixedUpdate () 
 	{
 
-        if (GameState == STATE.MENU)
+        if (GameState == STATE.MENU && connectedPlayers > 1)
         {
 
             bool play = true;
-            if (AirConsole.instance.IsAirConsoleUnityPluginReady()) { 
+            if (AirConsole.instance.IsAirConsoleUnityPluginReady())
+            { 
                 for (int i = 0; i < connectedPlayers; i++)
                 {
                     if (ready[i] == false)
@@ -602,20 +609,18 @@ public class GameManager : MonoBehaviour
                 }
                 if (play)
                 {
-                    JObject newmsg = new JObject();
-                    newmsg.Add("No", 1);
-                    if (ID[2] != 0) { 
-                    AirConsole.instance.Message(ID[0], newmsg);
-                    }
+                    // Sends message to display play button until it is accepted
+                    StartCoroutine(SendPlayButton());
+                    GameState = STATE.READY;
                 }
             }
         }
 
-		if (GameState == STATE.READY && connectedPlayers != prevConnectedPlayers) 
-		{
-			MessageAll ();
-			prevConnectedPlayers = connectedPlayers;
-		}
+		//if (GameState == STATE.READY && connectedPlayers != prevConnectedPlayers) 
+		//{
+		//	MessageAll ();
+		//	prevConnectedPlayers = connectedPlayers;
+		//}
 		if (GameState == STATE.GAME) 
 		{
             
@@ -627,7 +632,8 @@ public class GameManager : MonoBehaviour
 
 				// Get player ID
 				int winningPlayer = -1;
-				foreach (GameObject player in Players) {
+				foreach (GameObject player in Players)
+                {
 					KnobMovement script = player.GetComponent<KnobMovement> ();
 					if (script.destroyMe == false) 
 					{
@@ -1122,12 +1128,39 @@ public class GameManager : MonoBehaviour
             }
             yield return null;
         }
-    
+
+        Debug.Log("Stopped sending character");    
+    }
+
+    private IEnumerator SendPlayButton()
+    {
+        float timer = 0;
+        Debug.Log("Sending Play");
+
+        while (!recievedPlay)
+        {
+            timer += Time.deltaTime;
+            if (timer >= 0.1)
+            {
+                JObject newmsg = new JObject();
+                newmsg.Add("No", 1);
+                if (ID[0] != 0 && ID[1] != 0) // once two players are connected and ready
+                {
+                    AirConsole.instance.Message(ID[0], newmsg);
+                }
+                timer = 0;
+            }
+            yield return null;
+        }
+
+        Debug.Log("Stopped sending play");
     }
 
 	private IEnumerator SpawnPlayerInNewRound(int device_id)
 	{
-		while (GameState != STATE.RESTART) 
+        bool roundEnded = false;
+
+		while (GameState != STATE.RESTART && !roundEnded) 
 		{
 			// Wait
 			yield return null;
@@ -1135,42 +1168,61 @@ public class GameManager : MonoBehaviour
 
 		if (GameState == STATE.RESTART)
 		{
-			// Set default spawn
-			SpawnLocation.Set (0, 0, 0);
-
-			// Assign character
-			//int character = RandomCharacter();
-			int character = charNums [connectedPlayers];
-			TakenCharacters [connectedPlayers] = character;
-
-			// Create player
-			GameObject newPlayer = Instantiate (Characters [character], SpawnLocation, Quaternion.identity) as GameObject;
-			newPlayer.GetComponent<KnobMovement> ().characterNumber = character;
-			newPlayer.GetComponent<KnobMovement> ().SetID (connectedPlayers);
-			ID [connectedPlayers] = device_id;
-			Players.Add (newPlayer);
-
-			// Add Menu Graphic
-			menu.AddConnectGraphic (character, connectedPlayers);
-			menu.AddScore (character, connectedPlayers);
-
-			// Increment connected and destroyed players
-			connectedPlayers++;
-			destroyedPlayers++;
-
-			// Send connection message to controller
-			JObject connectionMessage = new JObject ();
-			connectionMessage.Add ("state", (int)GameState);
-			connectionMessage.Add ("angle", 0);
-			AirConsole.instance.Message (device_id, connectionMessage);
-			AirConsole.instance.SetActivePlayers (8);
-
-			// Play connect sound
-			audioMan.PlayDrop ();
-
-			Debug.Log ("New Player Added");
-			yield return null;
+            roundEnded = true;
 		}
+
+        if (roundEnded)
+        {
+            while(GameState != STATE.GAME)
+            {
+                // Wait
+                yield return null;
+            }
+
+            // Set default spawn
+            SpawnLocation.Set(0, 0, 0);
+
+            // Assign character
+            //int character = RandomCharacter();
+            int character = charNums[connectedPlayers];
+            while (TakenCharacters.Contains(character))
+            {
+                character = Random.Range(0,7);
+            }
+            TakenCharacters[connectedPlayers] = character;
+
+            // Create player
+            GameObject newPlayer = Instantiate(Characters[character], SpawnLocation, Quaternion.identity) as GameObject;
+            KnobMovement newPlayerScript = newPlayer.GetComponent<KnobMovement>();
+            newPlayerScript.characterNumber = character;
+            newPlayerScript.SetID(connectedPlayers);
+            newPlayerScript.ability = Abilities[Random.Range(0, 2)];
+            ID[connectedPlayers] = device_id;
+            Players.Add(newPlayer);
+
+            // Add Menu Graphic
+            menu.AddConnectGraphic(character, connectedPlayers);
+            menu.AddScore(character, connectedPlayers);
+            menu.HideAbilitySprite(newPlayerScript.playerID);
+
+            // Increment connected and destroyed players
+            connectedPlayers++;
+            destroyedPlayers++;
+
+            // Send connection message to controller
+            JObject connectionMessage = new JObject();
+            connectionMessage.Add("state", (int)GameState);
+            connectionMessage.Add("angle", 0);
+            connectionMessage.Add("charNo", character + 1);
+            AirConsole.instance.Message(device_id, connectionMessage);
+            AirConsole.instance.SetActivePlayers(8);
+
+            // Play connect sound
+            audioMan.PlayDrop();
+
+            Debug.Log("New Player Added");
+            yield return null;
+        }
 	}
 
 	private void MessageAll()
