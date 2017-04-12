@@ -30,8 +30,8 @@ public class GameManager : MonoBehaviour
     [SerializeField]
 	private int[] charNums = new int[8] {0, 1, 2, 3, 4, 5, 6, 7};
 	private float angle = 0.0f;
-	public float[] angles;
-	public int[] ID;
+	public List<float> angles;
+	public List<int> ID;
 	public int connectedPlayers = 0;
 	private int prevConnectedPlayers = 0;
 	private int destroyedPlayers = 0;
@@ -141,8 +141,9 @@ public class GameManager : MonoBehaviour
 				newScript.characterNumber = character;
 				newScript.SetID (connectedPlayers);
                 newScript.ability = Abilities[0];
-				ID [connectedPlayers] = device_id;
+				ID.Add(device_id);
 				Players.Add (newPlayer);
+                angles.Add(0);
 
 				// Add Menu Graphic
 				menu.ShowConnectGraphic (character, connectedPlayers);
@@ -167,12 +168,25 @@ public class GameManager : MonoBehaviour
 			} 
 			else 
 			{
-				// Wait for new round to add new player
-				StartCoroutine(SpawnPlayerInNewRound(device_id));
+                // Wait for new round to add new player
+                StartCoroutine(SpawnPlayerInNewRound(device_id));
 			}
 		}
 	}
 
+
+    void updateIds(int disconnectedID)
+    {
+        int iterator = 0;
+        foreach( GameObject i in Players)
+        {
+            if(iterator > disconnectedID)
+            {
+                i.GetComponent<KnobMovement>().SetID(i.GetComponent<KnobMovement>().playerID - 1);
+            }
+            iterator++;
+        }
+    }
 	/// <summary>
 	/// If the game is running and one of the active players leaves, we remove their character and continue playing.
 	/// </summary>
@@ -182,6 +196,7 @@ public class GameManager : MonoBehaviour
 		int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber (device_id);
 		if (active_player != -1) 
 		{
+            updateIds(active_player);
 			Debug.Log ("Player " + active_player + " disconnected. Removing!");
 
 			// Update counters for current player states
@@ -200,21 +215,28 @@ public class GameManager : MonoBehaviour
 					toRemove = i;
 				}
 			}
-			if (toRemove != -1)
-				TakenCharacters.Remove (toRemove);
+            if (toRemove != -1)
+            {
+                TakenCharacters.Remove(toRemove);
+            }
 
 			// Remove player connect graphic and score from menu
 			menu.RemoveConnectGraphic(active_player);
 			menu.RemoveScore (Players [active_player].GetComponent<KnobMovement> ().characterNumber);
+            
+
 
 			// Destroy game object and remove from list
 			Destroy(Players [active_player]);
 			Players.Remove (Players [active_player]);
-			AirConsole.instance.SetActivePlayers (8);
-			//Players.RemoveAll (item => item == null);
+            ID.Remove(ID[active_player]);
+            angles.Remove(angles[active_player]);
+            AirConsole.instance.SetActivePlayers (8);
+            
+            //Players.RemoveAll (item => item == null);
 
-			// If there are no more players connected, go back to menu and wait for connection.
-			if (connectedPlayers == 0) 
+            // If there are no more players connected, go back to menu and wait for connection.
+            if (connectedPlayers == 0) 
 			{
 				menu.ShowMenu ();
 				GameState = STATE.MENU;
@@ -625,7 +647,7 @@ public class GameManager : MonoBehaviour
 		{
             
             // Check if there is a winner yet
-            if (destroyedPlayers == (connectedPlayers - 1) && destroyedPlayers > 0)
+            if (destroyedPlayers == (connectedPlayers - 1))
             {
                 // Set winner bool
                 winner = true;
@@ -1189,7 +1211,7 @@ public class GameManager : MonoBehaviour
             {
                 character = Random.Range(0,7);
             }
-            TakenCharacters[connectedPlayers] = character;
+            TakenCharacters.Add(character);
 
             // Create player
             GameObject newPlayer = Instantiate(Characters[character], SpawnLocation, Quaternion.identity) as GameObject;
@@ -1197,8 +1219,9 @@ public class GameManager : MonoBehaviour
             newPlayerScript.characterNumber = character;
             newPlayerScript.SetID(connectedPlayers);
             newPlayerScript.ability = Abilities[Random.Range(0, 2)];
-            ID[connectedPlayers] = device_id;
             Players.Add(newPlayer);
+            ID.Add(device_id);
+            angles.Add(0);
 
             // Add Menu Graphic
             menu.AddConnectGraphic(character, connectedPlayers);
@@ -1213,9 +1236,10 @@ public class GameManager : MonoBehaviour
             JObject connectionMessage = new JObject();
             connectionMessage.Add("state", (int)GameState);
             connectionMessage.Add("angle", 0);
-            connectionMessage.Add("charNo", character + 1);
+            connectionMessage.Add("lateConnect", character + 1);
             AirConsole.instance.Message(device_id, connectionMessage);
             AirConsole.instance.SetActivePlayers(8);
+            
 
             // Play connect sound
             audioMan.PlayDrop();

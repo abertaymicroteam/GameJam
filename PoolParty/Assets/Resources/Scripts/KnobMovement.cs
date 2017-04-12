@@ -122,7 +122,7 @@ public class KnobMovement : MonoBehaviour {
         }
 
 		// Limit velocity
-		if (rigBody.velocity.magnitude > 15) 
+		if (rigBody.velocity.magnitude > 20) 
 		{
 			rigBody.drag = 20;
 			drag = true;
