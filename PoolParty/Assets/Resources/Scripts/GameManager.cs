@@ -154,7 +154,6 @@ public class GameManager : MonoBehaviour
                 StartCoroutine(StartMessage(device_id, connectedPlayers));
 				AirConsole.instance.SetActivePlayers (8);
 
-
 				// Play connect sound
 				audioMan.PlayDrop ();
 
@@ -196,7 +195,6 @@ public class GameManager : MonoBehaviour
 		int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber (device_id);
 		if (active_player != -1) 
 		{
-            updateIds(active_player);
 			Debug.Log ("Player " + active_player + " disconnected. Removing!");
 
 			// Update counters for current player states
@@ -223,11 +221,12 @@ public class GameManager : MonoBehaviour
 			// Remove player connect graphic and score from menu
 			menu.RemoveConnectGraphic(active_player);
 			menu.RemoveScore (Players [active_player].GetComponent<KnobMovement> ().characterNumber);
-            
 
+            // Update remaining player IDs
+            updateIds(active_player);
 
-			// Destroy game object and remove from list
-			Destroy(Players [active_player]);
+            // Destroy game object and remove from list
+            Destroy(Players [active_player]);
 			Players.Remove (Players [active_player]);
             ID.Remove(ID[active_player]);
             angles.Remove(angles[active_player]);
@@ -236,12 +235,12 @@ public class GameManager : MonoBehaviour
             //Players.RemoveAll (item => item == null);
 
             // If there are no more players connected, go back to menu and wait for connection.
-            if (connectedPlayers == 0) 
+            if (connectedPlayers == 1) 
 			{
 				menu.ShowMenu ();
 				GameState = STATE.MENU;
 				ShuffleArray<int> (charNums);
-			}
+            }
 		}
 	}
 
@@ -300,7 +299,6 @@ public class GameManager : MonoBehaviour
                 {
                     if (locked[it] == false)
                     {
-                        Debug.Log("1");
                         if (data["button"].ToString() == "left")
                         {
                             hoveredChars[it]--;
@@ -898,14 +896,19 @@ public class GameManager : MonoBehaviour
 			if (messagetimer < 0) 
 			{
 				// Reset iterator 
-				msgI = 0;		
+				msgI = 0;
 
-				//iterate through all players calculate angles and send to respective controllers 
-				foreach (GameObject i in Players) 
-				{
-					//calculate the current angle of the player to 2 decimal places 
-					currentAngle = (Mathf.Round ((i.transform.rotation.eulerAngles.z * 100)) / 100);
-
+                //iterate through all players calculate angles and send to respective controllers 
+                foreach (GameObject i in Players)
+                {
+                    //calculate the current angle of the player to 2 decimal places 
+                    if (i.transform.rotation.eulerAngles.z  != 0) { 
+                    currentAngle = (Mathf.Round((i.transform.rotation.eulerAngles.z * 100)) / 100);
+                    }
+                    else
+                    {
+                        currentAngle = 0;
+                    }
 					//send message to the player
 					UpdateMessage (currentAngle, charNums[msgI], msgI, i.GetComponent<KnobMovement>().chargeLevel);
 
@@ -939,6 +942,14 @@ public class GameManager : MonoBehaviour
 			prevAngle[iterator] = angle;							//update previous angle
 			msg.ClearItems();										//clear item
 		}
+        else
+        {
+            msg.Add("powUp", powpow);
+            AirConsole.instance.Message(ID[iterator], msg);     //send message
+            debugMessage(msg, ID[iterator]);                        //debug
+            prevAngle[iterator] = angle;                            //update previous angle
+            msg.ClearItems();										//clear item
+        }
 
 	}
 
@@ -1157,7 +1168,6 @@ public class GameManager : MonoBehaviour
     private IEnumerator SendPlayButton()
     {
         float timer = 0;
-        Debug.Log("Sending Play");
 
         while (!recievedPlay)
         {
@@ -1174,8 +1184,6 @@ public class GameManager : MonoBehaviour
             }
             yield return null;
         }
-
-        Debug.Log("Stopped sending play");
     }
 
 	private IEnumerator SpawnPlayerInNewRound(int device_id)

@@ -94,24 +94,20 @@
                   //navigator.vibrate(500);
               }
 
-              if (data.powUp >= 100) {
-                  powReady = true;
-                 
-              }
-              else {
-                  powReady = false;
+              if (data.powUp) {
+                  if (data.powUp >= 100) {
+                      var daspow = document.getElementById("powerbutt");
+                      daspow.style.backgroundImage = "url(ability1.png)";
+                      //powReady = true;
+                  }
+                  else {
+                      var daspow = document.getElementById("powerbutt");
+                      daspow.style.backgroundImage = "url(ability2.png)";
+                  }
               }
 
-              if(powReady){
-                  var daspow = document.getElementById("powerbutt");
-                  daspow.style.backgroundImage = "url(ability1.png)";
-                 // navigator.vibrate(100);
-              }
-              else
-              {
-                  var daspow = document.getElementById("powerbutt");
-                  daspow.style.backgroundImage = "url(ability2.png)";
-              }
+             
+           
 
 
           	  if (data.available ) {
@@ -163,6 +159,7 @@
                           charDisplayName.style.backgroundImage = "url(tamName.png)";
                       break;
           	      }
+                  
                   vm.show("menu_char");
                   airconsole.message(AirConsole.SCREEN, { title: "recievedChar" });
                   if (state == -1) {
@@ -229,6 +226,7 @@
         airconsole.message(AirConsole.SCREEN, { title: "game_button", button: "pow" });
         //var daspow = document.getElementById("powerbutt");
         //daspow.style.backgroundImage = "url(ability2.png)";
+        //powReady = false;
     }
 
     function left(event) {

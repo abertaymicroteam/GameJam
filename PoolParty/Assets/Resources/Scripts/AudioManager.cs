@@ -76,6 +76,7 @@ public class AudioManager : MonoBehaviour {
 		AudioSource newSrc1 = gameObject.AddComponent<AudioSource>();
 		newSrc.clip = hit;
 		newSrc1.clip = boing;
+        newSrc1.volume = 0.5f;
 		newSrc.loop = false;
 		newSrc1.loop = false;
 		newSrc.Play ();
@@ -106,6 +107,7 @@ public class AudioManager : MonoBehaviour {
 	{
 		AudioSource newSrc = gameObject.AddComponent<AudioSource>();
 		newSrc.clip = win;
+        newSrc.volume = 0.75f;
 		newSrc.loop = false;
 		newSrc.Play ();
 		Playing.Add (newSrc);

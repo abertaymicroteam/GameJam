@@ -122,7 +122,7 @@ public class KnobMovement : MonoBehaviour {
         }
 
 		// Limit velocity
-		if (rigBody.velocity.magnitude > 20) 
+		if (rigBody.velocity.magnitude > 25) 
 		{
 			rigBody.drag = 20;
 			drag = true;
@@ -161,7 +161,6 @@ public class KnobMovement : MonoBehaviour {
                 // Do charge boost instead
                 GetComponentInChildren<ChargeScript>().direction = direction;
                 GetComponentInChildren<ChargeScript>().angle = gMan.getAngle(playerID);
-                Debug.Log("Rotation " + gMan.getAngle(playerID));
                 GetComponentInChildren<ChargeScript>().fire = true;
                 chargeAbilityReady = false;
 
@@ -234,9 +233,12 @@ public class KnobMovement : MonoBehaviour {
 			{
 				foreach (Collider2D coll in currentColliders) 
 				{
-					// Fade score back in
-					ScoreScript temp = coll.GetComponent<ScoreScript> ();
-					temp.FadeIn ();
+                    // Fade score back in
+                    if (coll != null)
+                    {
+                        ScoreScript temp = coll.GetComponent<ScoreScript>();
+                        temp.FadeIn();
+                    }
 				}
 				colliding = false;
 			}
