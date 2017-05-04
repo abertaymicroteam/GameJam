@@ -202,6 +202,7 @@
      <Compile Include="Assets\AirConsole\scripts\DebugLevel.cs" />
      <Compile Include="Assets\AirConsole\scripts\Settings.cs" />
      <Compile Include="Assets\AirConsole\scripts\WebsocketListener.cs" />
+<<<<<<< HEAD
      <Compile Include="Assets\PlayMovie.cs" />
      <Compile Include="Assets\Resources\Animations\Splash\Splash.cs" />
      <Compile Include="Assets\Resources\Scripts\AbilityBarScript.cs" />
@@ -217,6 +218,13 @@
      <Compile Include="Assets\Resources\Scripts\PersonScript.cs" />
      <Compile Include="Assets\Resources\Scripts\RotLock.cs" />
      <Compile Include="Assets\Resources\Scripts\ScoreScript.cs" />
+=======
+     <Compile Include="Assets\Animations\Splash\Splash.cs" />
+     <Compile Include="Assets\Audio\Bounce\Bounce.cs" />
+     <Compile Include="Assets\Audio\Characters\Character.cs" />
+     <Compile Include="Assets\KnobMovement.cs" />
+     <Compile Include="Assets\Resources\GameManager.cs" />
+>>>>>>> f05b9d4602cbcb95469de67bff5a0c8d8a18d87f
      <None Include="Assets\AirConsole\README.txt" />
      <None Include="Assets\Plugins\Android\AndroidManifest.xml" />
  <Reference Include="UnityEngine.UI">
@@ -231,6 +239,7 @@
  <Reference Include="UnityEngine.Analytics">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/UnityAnalytics/UnityEngine.Analytics.dll</HintPath>
  </Reference>
+<<<<<<< HEAD
  <Reference Include="UnityEngine.HoloLens">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/UnityHoloLens/RuntimeEditor/UnityEngine.HoloLens.dll</HintPath>
  </Reference>
@@ -239,6 +248,13 @@
  </Reference>
  <Reference Include="websocket-sharp">
  <HintPath>C:/Users/Soulful Brown/Documents/GameJam/PoolParty/Assets/AirConsole/plugins/websocket-sharp.dll</HintPath>
+=======
+ <Reference Include="websocket-sharp">
+ <HintPath>E:/GGJ 2017/GitHub/PoolParty/Assets/AirConsole/plugins/websocket-sharp.dll</HintPath>
+ </Reference>
+ <Reference Include="websocket-sharp">
+ <HintPath>E:/GGJ 2017/GitHub/PoolParty/Assets/Plugins/websocket-sharp.dll</HintPath>
+>>>>>>> f05b9d4602cbcb95469de67bff5a0c8d8a18d87f
  </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

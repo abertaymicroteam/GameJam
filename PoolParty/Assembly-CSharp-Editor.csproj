@@ -87,6 +87,7 @@
  <Reference Include="UnityEngine.Analytics">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/UnityAnalytics/UnityEngine.Analytics.dll</HintPath>
  </Reference>
+<<<<<<< HEAD
  <Reference Include="UnityEditor.Analytics">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/UnityAnalytics/Editor/UnityEditor.Analytics.dll</HintPath>
  </Reference>
@@ -104,10 +105,26 @@
  </Reference>
  <Reference Include="websocket-sharp">
  <HintPath>C:/Users/Soulful Brown/Documents/GameJam/PoolParty/Assets/AirConsole/plugins/websocket-sharp.dll</HintPath>
+=======
+ <Reference Include="websocket-sharp">
+ <HintPath>E:/GGJ 2017/GitHub/PoolParty/Assets/AirConsole/plugins/websocket-sharp.dll</HintPath>
+ </Reference>
+ <Reference Include="websocket-sharp">
+ <HintPath>E:/GGJ 2017/GitHub/PoolParty/Assets/Plugins/websocket-sharp.dll</HintPath>
+>>>>>>> f05b9d4602cbcb95469de67bff5a0c8d8a18d87f
  </Reference>
  <Reference Include="UnityEditor.Graphs">
  <HintPath>C:/Program Files/Unity/Editor/Data/Managed/UnityEditor.Graphs.dll</HintPath>
  </Reference>
+<<<<<<< HEAD
+=======
+ <Reference Include="UnityEditor.Android.Extensions">
+ <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/AndroidPlayer/UnityEditor.Android.Extensions.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.iOS.Extensions">
+ <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.dll</HintPath>
+ </Reference>
+>>>>>>> f05b9d4602cbcb95469de67bff5a0c8d8a18d87f
  <Reference Include="UnityEditor.WindowsStandalone.Extensions">
  <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/windowsstandalonesupport/UnityEditor.WindowsStandalone.Extensions.dll</HintPath>
  </Reference>
