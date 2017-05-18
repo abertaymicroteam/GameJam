@@ -18,7 +18,7 @@ public class MenuScript : MonoBehaviour
 	float countdownTimer = 3.0f;
 	int currCountdown = 0;
 	private int prevCountdown = 0;
-	public SpriteRenderer Title;
+	public GameObject loading;
 	public SpriteRenderer winner;
 	public SpriteRenderer restart;
 	public SpriteRenderer helper;
@@ -46,7 +46,7 @@ public class MenuScript : MonoBehaviour
 	// Use this for initialization
 	void Start () 
 	{
-		Title.enabled = true;
+		loading.SetActive(true);
 		menuRenderer = gameObject.GetComponent<SpriteRenderer> ();
 
 		winnerName = GameObject.Find ("WinnerName").GetComponent<Text>();
@@ -81,8 +81,9 @@ public class MenuScript : MonoBehaviour
 		
 	}
 
-	public void HideTitle(){
-		Title.enabled = false;
+	public void HideTitle()
+    {
+        Destroy(loading);
 	}
 
 	public void ShowMenu()

@@ -68,8 +68,8 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private int[] hoveredChars = new int[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
 	private int[] hoveredPow = new int[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
-    private bool[] locked = new bool[8] { false, false, false, false, false, false, false, false };
-	private bool[] ready = new bool[8] { false, false, false, false, false, false, false, false };
+    private bool[] locked = new bool[8] { true, true, false, false, false, false, false, false };
+	private bool[] ready = new bool[8] { true, true, false, false, false, false, false, false };
     private bool[] recievedMessage = new bool[8] { false, false, false, false, false, false, false, false };
     private bool recievedPlay = false;
 
