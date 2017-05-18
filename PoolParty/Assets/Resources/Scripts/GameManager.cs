@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using NDream.AirConsole;
 using Newtonsoft.Json.Linq;
 
+// TODO: Make this class less of a clusterfuck ie. paint the forth rail bridge
+// TODO: Add more to do's
 public class GameManager : MonoBehaviour 
 {
 	// Game State
@@ -22,19 +24,18 @@ public class GameManager : MonoBehaviour
 	private GameObject scores;
 
 	// Players
-	public Vector3 SpawnLocation;
 	public List<GameObject> Players;
+	public List<PlayerScript> PlayerScripts;
     public List<GameObject> Abilities;
 	public GameObject[] Characters;
 	public List<int> TakenCharacters;
     [SerializeField]
 	private int[] charNums = new int[8] {0, 1, 2, 3, 4, 5, 6, 7};
-	private float angle = 0.0f;
-	public List<float> angles;
-	public List<int> ID;
 	public int connectedPlayers = 0;
 	private int prevConnectedPlayers = 0;
 	private int destroyedPlayers = 0;
+	private int msgI = 0; // Update message iterator
+	private float messagetimer = 0.1f; // Update messages limited to 10 per second
 
 	// Misc
 	private bool restartTap = false;
@@ -45,7 +46,8 @@ public class GameManager : MonoBehaviour
 	private float timer = 3.0f;
 	private bool winIncremented = false;
 	public float rotatormes;
-    private bool adShowing = false;
+	private bool adShowing = false;
+	private bool recievedPlay = false;
 	#if !DISABLE_AIRCONSOLE 
 
 	// Play area shrinking
@@ -55,28 +57,6 @@ public class GameManager : MonoBehaviour
 	public bool showdown = false;
 	public bool borderRed = false;
 	public bool borderFlash = false;
-
-	//variables for update message
-	public float[] prevAngle;
-	private float currentAngle;
-	private int msgI = 0;
-	private float messagetimer = 0.1f; // Messages limited to 10 per second
-
-    //Character select
-    private enum ControllerState { Char, Power, Ready, Game };
-    private ControllerState[] controllerState = new ControllerState[8] { ControllerState.Char, ControllerState.Char, ControllerState.Char, ControllerState.Char, ControllerState.Char, ControllerState.Char, ControllerState.Char, ControllerState.Char };
-    [SerializeField]
-    private int[] hoveredChars = new int[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
-	private int[] hoveredPow = new int[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
-    private bool[] locked = new bool[8] { true, true, false, false, false, false, false, false };
-	private bool[] ready = new bool[8] { true, true, false, false, false, false, false, false };
-    private bool[] recievedMessage = new bool[8] { false, false, false, false, false, false, false, false };
-    private bool recievedPlay = false;
-
-    public float getAngle(int ID)
-	{
-		return angles [ID];
-	}
 
 	void Awake () 
 	{
@@ -100,6 +80,9 @@ public class GameManager : MonoBehaviour
 		audioMan = GameObject.FindGameObjectWithTag("Audio").GetComponent<AudioManager>();
 
 		// Get objects to shrink
+		// TODO: Perhaps bundle all of these elements (except camera) under one "HUD" object. Means only need one
+		// resize routine and makes it quicker to make new UI elements shrink to the right size as they will all 
+		// shrink the same amount relative to parent.
 		border = GameObject.FindGameObjectWithTag("Border");
 		boundaries = GameObject.FindGameObjectWithTag ("Boundaries");
 		cam = GameObject.FindGameObjectWithTag ("MainCamera").GetComponent<Camera>();
@@ -107,47 +90,33 @@ public class GameManager : MonoBehaviour
 
 		// Randomise character order
 		ShuffleArray<int>(charNums);
-
-        for(int i = 0; i < 8; i ++)
-        {
-            hoveredChars[i] = charNums[i];
-        }
 	}
 
-	/// <summary>
-	/// 
-	/// 
-	/// </summary>
-	/// <param name="device_id">The device_id that connected</param>
+	/// Called when a new player connects
 	void OnConnect (int device_id) 
 	{
 		if (connectedPlayers < 8) 
 		{
 			if (GameState == STATE.MENU || GameState == STATE.READY)
 			{
-            
-
-                // Set default spawn
-                SpawnLocation.Set (0, 0, 0);
-
 				// Assign character
 				//int character = RandomCharacter();
-				int character = charNums [connectedPlayers];
-			
+				int character = charNums [connectedPlayers];			
 
 				// Create player
-				GameObject newPlayer = Instantiate (Characters [character], SpawnLocation, Quaternion.identity) as GameObject;
-                KnobMovement newScript = newPlayer.GetComponent<KnobMovement>();
+				GameObject newPlayer = Instantiate (Characters [character], new Vector3(0.0f, 0.0f, 0.0f), Quaternion.identity) as GameObject;
+                PlayerScript newScript = newPlayer.GetComponent<PlayerScript>();
 				newScript.characterNumber = character;
+				newScript.hoveredChar = character;
 				newScript.SetID (connectedPlayers);
+				newScript.deviceID = device_id;
                 newScript.ability = Abilities[0];
-				ID.Add(device_id);
 				Players.Add (newPlayer);
-                angles.Add(0);
+				PlayerScripts.Add (newScript);
 
 				// Add Menu Graphic
 				menu.ShowConnectGraphic (character, connectedPlayers);
-				menu.UpdateAbilityGraphic (hoveredPow [0], connectedPlayers);
+				menu.UpdateAbilityGraphic (PlayerScripts[connectedPlayers].hoveredPow, connectedPlayers);
 				// Increment connected players
 				connectedPlayers++;
 
@@ -158,8 +127,9 @@ public class GameManager : MonoBehaviour
 				audioMan.PlayDrop ();
 
 				// Is the game ready to play? (2 player connected)
-				if (AirConsole.instance.GetControllerDeviceIds ().Count > 1) {	
-					menu.HideTitle ();
+				if (AirConsole.instance.GetControllerDeviceIds ().Count > 1) 
+				{	
+					cam.GetComponent<CameraScript>().MoveCamera (new Vector3 (0.0f, 0.0f, -10.0f), 0.75f);
 					ReadyToPlay ();
 				} else {
 					//uiText.text =  AirConsole.instance.GetControllerDeviceIds ().Count  + " PLAYERS CONNECTED";
@@ -173,23 +143,21 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-
+	// Updates player IDs when someone disconnects
     void updateIds(int disconnectedID)
     {
         int iterator = 0;
-        foreach( GameObject i in Players)
+        foreach(PlayerScript player in PlayerScripts)
         {
             if(iterator > disconnectedID)
             {
-                i.GetComponent<KnobMovement>().SetID(i.GetComponent<KnobMovement>().playerID - 1);
+                player.SetID(player.playerID - 1);
             }
             iterator++;
         }
     }
-	/// <summary>
+
 	/// If the game is running and one of the active players leaves, we remove their character and continue playing.
-	/// </summary>
-	/// <param name="device_id">The device_id that has left.</param>
 	void OnDisconnect (int device_id) 
 	{
 		int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber (device_id);
@@ -199,7 +167,7 @@ public class GameManager : MonoBehaviour
 
 			// Update counters for current player states
 			connectedPlayers --;
-			if (Players [active_player].GetComponent<KnobMovement> ().destroyMe && destroyedPlayers > 0) 
+			if (Players [active_player].GetComponent<PlayerScript> ().destroyMe && destroyedPlayers > 0) 
 			{
 				destroyedPlayers--;
 			}
@@ -208,7 +176,7 @@ public class GameManager : MonoBehaviour
 			int toRemove = -1;
 			foreach(int i in TakenCharacters)
 			{
-				if (i == Players[active_player].GetComponent<KnobMovement>().characterNumber)
+				if (i == Players[active_player].GetComponent<PlayerScript>().characterNumber)
 				{
 					toRemove = i;
 				}
@@ -220,7 +188,7 @@ public class GameManager : MonoBehaviour
 
 			// Remove player connect graphic and score from menu
 			menu.RemoveConnectGraphic(active_player);
-			menu.RemoveScore (Players [active_player].GetComponent<KnobMovement> ().characterNumber);
+			menu.RemoveScore (Players [active_player].GetComponent<PlayerScript> ().characterNumber);
 
             // Update remaining player IDs
             updateIds(active_player);
@@ -228,8 +196,6 @@ public class GameManager : MonoBehaviour
             // Destroy game object and remove from list
             Destroy(Players [active_player]);
 			Players.Remove (Players [active_player]);
-            ID.Remove(ID[active_player]);
-            angles.Remove(angles[active_player]);
             AirConsole.instance.SetActivePlayers (8);
             
             //Players.RemoveAll (item => item == null);
@@ -267,7 +233,8 @@ public class GameManager : MonoBehaviour
             {
                 if (data["title"].ToString() == "recievedChar")
                 {
-                    recievedMessage[AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id)] = true;
+					Debug.Log ("Recieved Char from " + device_id);
+					PlayerScripts[AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id)].recievedMessage = true;
                 }
 
                 if (data["title"].ToString() == "recievedPlay")
@@ -282,33 +249,34 @@ public class GameManager : MonoBehaviour
                 //find out who the message is from
                 int it = 0;
                 bool found = false;
-                foreach (int i in ID)
+				foreach (PlayerScript player in PlayerScripts)
                 {
-                    if (device_id == i)
+					if (device_id == player.deviceID)
                     {
                         found = true;
                     }
-                    if (device_id != i && !found)
+					if (device_id != player.deviceID && !found)
                     {
                         it++;
                     }
                 }
 
                 //controller character select
-                if (controllerState[it] == ControllerState.Char)
+				// TODO: Currently the DEFAULT hovered characters aren't shown as "Taken" to other players
+                if (PlayerScripts[it].controllerState == PlayerScript.ControllerState.Char)
                 {
-                    if (locked[it] == false)
+                    if (PlayerScripts[it].locked == false)
                     {
                         if (data["button"].ToString() == "left")
                         {
-                            hoveredChars[it]--;
+                            PlayerScripts[it].hoveredChar--;
                             //Change character
                             int playerNumber = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
                             if (playerNumber != -1)
                             {
                                 // Get current character information
                                 GameObject currentPlayer = Players[playerNumber];
-                                KnobMovement currentPlayerScript = currentPlayer.GetComponent<KnobMovement>();
+                                PlayerScript currentPlayerScript = currentPlayer.GetComponent<PlayerScript>();
                                 int currCharacter = currentPlayerScript.characterNumber;
                                 int newCharacter = -1;
                                 if (currCharacter > 0)
@@ -321,7 +289,7 @@ public class GameManager : MonoBehaviour
                                 }
 
                                 JObject availableMsg = new JObject();
-                                if (TakenCharacters.Contains(hoveredChars[it]))
+                                if (TakenCharacters.Contains(PlayerScripts[it].hoveredChar))
                                 {
                                     availableMsg.Add("available", 1);
                                 }
@@ -329,18 +297,21 @@ public class GameManager : MonoBehaviour
                                 {
                                     availableMsg.Add("available", 2);
                                 }
-                                AirConsole.instance.Message(ID[it], availableMsg);
+								AirConsole.instance.Message(PlayerScripts[it].deviceID, availableMsg);
                                 availableMsg.ClearItems();
 
                                 // Create new player
-                                GameObject newPlayer = Instantiate(Characters[newCharacter], SpawnLocation, Quaternion.identity) as GameObject;
-                                KnobMovement newPlayerScript = newPlayer.GetComponent<KnobMovement>();
+								GameObject newPlayer = Instantiate(Characters[newCharacter], new Vector3(0.0f, 0.0f, 0.0f), Quaternion.identity) as GameObject;
+                                PlayerScript newPlayerScript = newPlayer.GetComponent<PlayerScript>();
                                 newPlayerScript.characterNumber = newCharacter;
                                 newPlayerScript.SetID(playerNumber);
                                 newPlayerScript.ability = currentPlayerScript.ability;
+								newPlayerScript.hoveredChar = currentPlayerScript.hoveredChar;
+								newPlayerScript.hoveredPow = currentPlayerScript.hoveredPow;
+								newPlayerScript.deviceID = device_id;
 
-                                //ID [playerNumber] = device_id;
                                 Players[playerNumber] = newPlayer;
+								PlayerScripts [playerNumber] = newPlayerScript;
 
                                 // Destroy old player object
                                 Destroy(currentPlayer);
@@ -356,14 +327,14 @@ public class GameManager : MonoBehaviour
                         }
                         if (data["button"].ToString() == "right")
                         {
-                            hoveredChars[it]++;
+                            PlayerScripts[it].hoveredChar++;
                             //Change character
                             int playerNumber = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
                             if (playerNumber != -1)
                             {
                                 // Get current character information
                                 GameObject currentPlayer = Players[playerNumber];
-                                KnobMovement currentPlayerScript = currentPlayer.GetComponent<KnobMovement>();
+                                PlayerScript currentPlayerScript = currentPlayer.GetComponent<PlayerScript>();
                                 int currCharacter = currentPlayerScript.characterNumber;
                                 int newCharacter = -1;
                                 if (currCharacter < 7)
@@ -376,7 +347,7 @@ public class GameManager : MonoBehaviour
                                 }
 
                                 JObject availableMsg = new JObject();
-                                if (TakenCharacters.Contains(hoveredChars[it]))
+                                if (TakenCharacters.Contains(PlayerScripts[it].hoveredChar))
                                 {
                                     availableMsg.Add("available", 1);
                                 }
@@ -384,18 +355,21 @@ public class GameManager : MonoBehaviour
                                 {
                                     availableMsg.Add("available", 2);
                                 }
-                                AirConsole.instance.Message(ID[it], availableMsg);
+								AirConsole.instance.Message(PlayerScripts[it].deviceID, availableMsg);
                                 availableMsg.ClearItems();
 
                                 // Create new player
-                                GameObject newPlayer = Instantiate(Characters[newCharacter], SpawnLocation, Quaternion.identity) as GameObject;
-                                KnobMovement newPlayerScript = newPlayer.GetComponent<KnobMovement>();
+								GameObject newPlayer = Instantiate(Characters[newCharacter], new Vector3(0.0f, 0.0f, 0.0f), Quaternion.identity) as GameObject;
+                                PlayerScript newPlayerScript = newPlayer.GetComponent<PlayerScript>();
                                 newPlayerScript.characterNumber = newCharacter;
                                 newPlayerScript.SetID(playerNumber);
                                 newPlayerScript.ability = currentPlayerScript.ability;
+								newPlayerScript.hoveredChar = currentPlayerScript.hoveredChar;
+								newPlayerScript.hoveredPow = currentPlayerScript.hoveredPow;
+								newPlayerScript.deviceID = device_id;
 
-                                //ID [playerNumber] = device_id;
                                 Players[playerNumber] = newPlayer;
+								PlayerScripts [playerNumber] = newPlayerScript;
 
                                 // Destroy old player object
                                 Destroy(currentPlayer);
@@ -411,65 +385,65 @@ public class GameManager : MonoBehaviour
                         }
                         if (data["button"].ToString() == "select")
                         {
-                            if (!TakenCharacters.Contains(hoveredChars[it]))
+                            if (!TakenCharacters.Contains(PlayerScripts[it].hoveredChar))
                             {
-                                locked[it] = true;
-                                TakenCharacters.Add(hoveredChars[it]);
-                                controllerState[it] = ControllerState.Power;
+                                PlayerScripts[it].locked = true;
+                                TakenCharacters.Add(PlayerScripts[it].hoveredChar);
+                                PlayerScripts[it].controllerState = PlayerScript.ControllerState.Power;
                                 JObject newmsg = new JObject();
                                 newmsg.Add("char", 1);
-                                AirConsole.instance.Message(ID[it], newmsg);
-                                charNums[it] = hoveredChars[it];
+								AirConsole.instance.Message(PlayerScripts[it].deviceID, newmsg);
+                                charNums[it] = PlayerScripts[it].hoveredChar;
                             }
                         }
                     }
                 }
                 // powerup selection
-                else if (controllerState[it] == ControllerState.Power)
+                else if (PlayerScripts[it].controllerState == PlayerScript.ControllerState.Power)
                 {
 
                     if (data["button"].ToString() == "back")
                     {
-                        locked[it] = false;
-                        TakenCharacters.Remove(hoveredChars[it]);
-                        controllerState[it] = ControllerState.Char;
+                        PlayerScripts[it].locked = false;
+                        TakenCharacters.Remove(PlayerScripts[it].hoveredChar);
+						PlayerScripts[it].controllerState = PlayerScript.ControllerState.Char;
                     }
 
                     if (data["button"].ToString() == "right")
                     {
-                        hoveredPow[it]++;
-                        menu.UpdateAbilityGraphic(hoveredPow[it], it);
-                        Players[it].GetComponent<KnobMovement>().ability = Abilities[hoveredPow[it]];
+                        PlayerScripts[it].hoveredPow++;
+                        menu.UpdateAbilityGraphic(PlayerScripts[it].hoveredPow, it);
+                        Players[it].GetComponent<PlayerScript>().ability = Abilities[PlayerScripts[it].hoveredPow];
                     }
 
                     if (data["button"].ToString() == "left")
                     {
-                        hoveredPow[it]--;
-                        menu.UpdateAbilityGraphic(hoveredPow[it], it);
-                        Players[it].GetComponent<KnobMovement>().ability = Abilities[hoveredPow[it]];
+                        PlayerScripts[it].hoveredPow--;
+                        menu.UpdateAbilityGraphic(PlayerScripts[it].hoveredPow, it);
+                        Players[it].GetComponent<PlayerScript>().ability = Abilities[PlayerScripts[it].hoveredPow];
                     }
 
                     if (data["button"].ToString() == "select")
                     {
-                        controllerState[it] = ControllerState.Ready;
+						PlayerScripts[it].controllerState = PlayerScript.ControllerState.Ready;
                         JObject newmsg = new JObject();
                         newmsg.Add("pow", 1);
-                        AirConsole.instance.Message(ID[it], newmsg);
-                        ready[it] = true;
+                        AirConsole.instance.Message(PlayerScripts[it].deviceID, newmsg);
+                        PlayerScripts[it].ready = true;
                     }
 
                 }
                 //readyscreen
-                else if (controllerState[it] == ControllerState.Ready)
+				else if (PlayerScripts[it].controllerState == PlayerScript.ControllerState.Ready)
                 {
                     if (data["button"].ToString() == "back")
                     {
                         //menu.UpdateAbilityGraphic (hoveredPow [0], it);
-                        controllerState[it] = ControllerState.Power;
-                        ready[it] = false;
+						PlayerScripts[it].controllerState = PlayerScript.ControllerState.Power;
+                        PlayerScripts[it].ready = false;
                     }
 
-
+					// TODO: If play button is shown, then a player backs out from ready screen, play button should be removed.
                     if (data["button"].ToString() == "play")
                     {
                         if (connectedPlayers != prevConnectedPlayers)
@@ -488,57 +462,12 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            
-            if (data["button"] != null)
-            {
-                if (data["button"].ToString() == "pow")
-                {
-                    int playerNumber = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
-                    if (!Players[playerNumber].GetComponent<KnobMovement>().destroyMe)
-                    { // Activate ability if player is alive
-                        Players[playerNumber].GetComponent<KnobMovement>().UseAbility();
-                    }
-                }
-            }
-            if (data["move"] != null)
-            {
-                if (data["move"] != null)
-                {
-                    //if a player is active 
-                    int active_player = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
-                    if (active_player != -1)
-                    {
-                        //get the angle information from the players tap
-                        angle = (float)data["move"];
-
-                        //calculate were to apply force to the player
-                        if (angle > 0)
-                        {
-                            angle = 180 - angle;
-                        }
-                        else if (angle < 0)
-                        {
-                            angle -= 180;
-                            if (angle < 0)
-                            {
-                                angle += 360;
-                            }
-                            angle = 360 - angle;
-                        }
-
-                        //store information on where to spawn splash
-                        int it = 0;
-                        foreach (int i in ID)
-                        {
-                            if (device_id == i)
-                            {
-                                angles[it] = angle;
-                            }
-                            it++;
-                        }
-                    }
-                }
-            }
+			// Message is a player input, send to appropriate player class for handling.
+			int playerNumber = AirConsole.instance.ConvertDeviceIdToPlayerNumber(device_id);
+			if (playerNumber != -1) 
+			{
+				PlayerScripts [playerNumber].GameMessage (data);
+			}
         }
     }
 
@@ -586,7 +515,7 @@ public class GameManager : MonoBehaviour
 		// Restart game objects
 		foreach (GameObject player in Players) 
 		{
-			KnobMovement temp = player.GetComponent<KnobMovement> ();
+			PlayerScript temp = player.GetComponent<PlayerScript> ();
 			temp.RestartMe ();
 			temp.rigBody.drag = 0.5f;
 		}
@@ -622,7 +551,7 @@ public class GameManager : MonoBehaviour
             { 
                 for (int i = 0; i < connectedPlayers; i++)
                 {
-                    if (ready[i] == false)
+                    if (PlayerScripts[i].ready == false)
                     {
                         play = false;
                     }
@@ -654,7 +583,7 @@ public class GameManager : MonoBehaviour
 				int winningPlayer = -1;
 				foreach (GameObject player in Players)
                 {
-					KnobMovement script = player.GetComponent<KnobMovement> ();
+					PlayerScript script = player.GetComponent<PlayerScript> ();
 					if (script.destroyMe == false) 
 					{
 						winningPlayer = script.playerID; // Get ID
@@ -683,7 +612,7 @@ public class GameManager : MonoBehaviour
 
 				//Stop player movement
 				foreach (GameObject player in Players) { 
-					KnobMovement temp = player.GetComponent<KnobMovement> ();
+					PlayerScript temp = player.GetComponent<PlayerScript> ();
 					temp.rigBody.drag = 100;
 				} 
 
@@ -901,20 +830,19 @@ public class GameManager : MonoBehaviour
                 //iterate through all players calculate angles and send to respective controllers 
                 foreach (GameObject i in Players)
                 {
+					float currentAngle = 0;
+
                     //calculate the current angle of the player to 2 decimal places 
-                    if (i.transform.rotation.eulerAngles.z  != 0) { 
-                    currentAngle = (Mathf.Round((i.transform.rotation.eulerAngles.z * 100)) / 100);
+                    if (i.transform.rotation.eulerAngles.z  != 0) 
+					{ 
+                   		currentAngle = (Mathf.Round((i.transform.rotation.eulerAngles.z * 100)) / 100);
                     }
-                    else
-                    {
-                        currentAngle = 0;
-                    }
+
 					//send message to the player
-					UpdateMessage (currentAngle, charNums[msgI], msgI, i.GetComponent<KnobMovement>().chargeLevel);
+					UpdateMessage (currentAngle, msgI, i.GetComponent<PlayerScript>().chargeLevel);
 
 					//increase iterator
 					msgI++;
-
 				}
 				messagetimer = 0.1f;
 			}
@@ -924,33 +852,17 @@ public class GameManager : MonoBehaviour
 	}
 
 
-	// Sends a message to the players controller with the current rotation of their character 
-	void UpdateMessage(float angle, int character, int iterator, int powpow){
-
+	// Sends a message to the players controller with the current rotation of their character, game state and charge level
+	void UpdateMessage(float angle, int iterator, int powpow)
+	{
 		JObject msg = new JObject ();			//message 
 
-		//if current angle is different from the last angle sent send a new message to the controller with an updated rotation 
-		//output information sent to console
-		if ((int)angle != (int)prevAngle[iterator]) 
-		{
-			msg.Add ("angle", (int)(-angle));						//add rotation to msg
-			//msg.Add ("charNo", character + 1);							//add char number to msg
-            msg.Add("powUp", powpow);
-			msg.Add ("state", (int)GameState);
-			AirConsole.instance.Message (ID [iterator], msg);		//send message
-			debugMessage(msg, ID[iterator]);						//debug
-			prevAngle[iterator] = angle;							//update previous angle
-			msg.ClearItems();										//clear item
-		}
-        else
-        {
-            msg.Add("powUp", powpow);
-            AirConsole.instance.Message(ID[iterator], msg);     //send message
-            debugMessage(msg, ID[iterator]);                        //debug
-            prevAngle[iterator] = angle;                            //update previous angle
-            msg.ClearItems();										//clear item
-        }
-
+		msg.Add ("angle", (int)(-angle));						//add rotation to msg
+        msg.Add("powUp", powpow);
+		msg.Add ("state", (int)GameState);
+		AirConsole.instance.Message (PlayerScripts [iterator].deviceID, msg);		//send message
+		debugMessage(msg, PlayerScripts[iterator].deviceID);						//debug
+		msg.ClearItems();										//clear item
 	}
 
 	//Debug message for what information has been sent to controller
@@ -969,24 +881,6 @@ public class GameManager : MonoBehaviour
 
 	public void KillMe(int playerNumber)
 	{
-        int playnum = 0;
-        bool found = false;
-        foreach(int i in hoveredChars)
-        {
-            if(i == playerNumber)
-            {
-                found = true;
-            }
-            else
-            {
-                playnum++;
-            }
-            if (found)
-            {
-                break;
-            }
-        }
-        AirConsole.instance.ConvertPlayerNumberToDeviceId(playnum);
         JObject deadzo = new JObject();
         deadzo.Add("deadzo", 1);
         AirConsole.instance.Message(AirConsole.instance.ConvertPlayerNumberToDeviceId(playerNumber), deadzo);
@@ -1068,6 +962,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
+	// TODO: Move camera resize to Camera script
     private IEnumerator ResizeCameraUp(float time, Camera cam, float desiredSize)
 	{
 		float currentSize = cam.orthographicSize;
@@ -1146,7 +1041,7 @@ public class GameManager : MonoBehaviour
     {
         float timer = 0;
         
-        while (!recievedMessage[ID - 1])
+		while (!PlayerScripts[ID - 1].recievedMessage)
         {
             timer += Time.deltaTime;
             if (timer >= 0.1)
@@ -1155,14 +1050,14 @@ public class GameManager : MonoBehaviour
                 JObject connectionMessage = new JObject();
                 connectionMessage.Add("state", (int)GameState);
                 connectionMessage.Add("angle", 0);
-                connectionMessage.Add("charNo", hoveredChars[ID - 1] + 1);
+				connectionMessage.Add("charNo", PlayerScripts[ID - 1].hoveredChar + 1);
                 AirConsole.instance.Message(device_id, connectionMessage);
                 timer = 0;
             }
             yield return null;
         }
 
-        Debug.Log("Stopped sending character");    
+		Debug.Log("Stopped sending character");    
     }
 
     private IEnumerator SendPlayButton()
@@ -1176,9 +1071,9 @@ public class GameManager : MonoBehaviour
             {
                 JObject newmsg = new JObject();
                 newmsg.Add("No", 1);
-                if (ID[0] != 0 && ID[1] != 0) // once two players are connected and ready
+				if (PlayerScripts[0].deviceID != 0 && PlayerScripts[1].deviceID != 0) // once two players are connected and ready
                 {
-                    AirConsole.instance.Message(ID[0], newmsg);
+					AirConsole.instance.Message(PlayerScripts[0].deviceID, newmsg);
                 }
                 timer = 0;
             }
@@ -1209,9 +1104,6 @@ public class GameManager : MonoBehaviour
                 yield return null;
             }
 
-            // Set default spawn
-            SpawnLocation.Set(0, 0, 0);
-
             // Assign character
             //int character = RandomCharacter();
             int character = charNums[connectedPlayers];
@@ -1222,14 +1114,15 @@ public class GameManager : MonoBehaviour
             TakenCharacters.Add(character);
 
             // Create player
-            GameObject newPlayer = Instantiate(Characters[character], SpawnLocation, Quaternion.identity) as GameObject;
-            KnobMovement newPlayerScript = newPlayer.GetComponent<KnobMovement>();
+			GameObject newPlayer = Instantiate(Characters[character], new Vector3(0.0f, 0.0f, 0.0f), Quaternion.identity) as GameObject;
+            PlayerScript newPlayerScript = newPlayer.GetComponent<PlayerScript>();
             newPlayerScript.characterNumber = character;
             newPlayerScript.SetID(connectedPlayers);
             newPlayerScript.ability = Abilities[Random.Range(0, 2)];
+			newPlayerScript.hoveredChar = character;
+			newPlayerScript.deviceID = device_id;
             Players.Add(newPlayer);
-            ID.Add(device_id);
-            angles.Add(0);
+			PlayerScripts.Add (newPlayerScript);
 
             // Add Menu Graphic
             menu.AddConnectGraphic(character, connectedPlayers);
@@ -1246,8 +1139,7 @@ public class GameManager : MonoBehaviour
             connectionMessage.Add("angle", 0);
             connectionMessage.Add("lateConnect", character + 1);
             AirConsole.instance.Message(device_id, connectionMessage);
-            AirConsole.instance.SetActivePlayers(8);
-            
+            AirConsole.instance.SetActivePlayers(8);            
 
             // Play connect sound
             audioMan.PlayDrop();
@@ -1270,8 +1162,8 @@ public class GameManager : MonoBehaviour
 			statemsg.Add("state", (int)GameState);
 			statemsg.Add ("charNo", charNums[iteratorl] + 1);
 			//send message to the player
-			AirConsole.instance.Message (ID [iteratorl], statemsg);		//send message
-			debugMessage(statemsg, ID[iteratorl]);					//debug						
+			AirConsole.instance.Message (PlayerScripts [iteratorl].deviceID, statemsg);		//send message
+			debugMessage(statemsg, PlayerScripts[iteratorl].deviceID);					//debug						
 			statemsg.ClearItems();	
 			//increase iterator
 			iteratorl++;

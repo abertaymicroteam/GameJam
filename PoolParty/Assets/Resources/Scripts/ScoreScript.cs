@@ -35,7 +35,7 @@ public class ScoreScript : MonoBehaviour {
 	{
 		foreach(GameObject player in gMan.Players)
 		{
-			KnobMovement temp = player.GetComponent<KnobMovement> ();
+			PlayerScript temp = player.GetComponent<PlayerScript> ();
 			if (temp.characterNumber == myCharacter) 
 			{
 				PersonScript tempPerson = player.GetComponentInChildren<PersonScript> ();

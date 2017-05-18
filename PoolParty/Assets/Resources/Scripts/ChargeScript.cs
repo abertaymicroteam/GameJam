@@ -6,7 +6,7 @@ public class ChargeScript : MonoBehaviour
 { // Class handles the physics and lifetime of the charge ability
 
     // Object references
-    private KnobMovement myPlayerScript;
+	private PlayerScript myPlayerScript;
     private GameManager gMan;
     private AudioManager audioMan;
 
@@ -27,7 +27,7 @@ public class ChargeScript : MonoBehaviour
     void Start ()
     {
         // Get parent script
-        myPlayerScript = GetComponentInParent<KnobMovement>();
+        myPlayerScript = GetComponentInParent<PlayerScript>();
 
         // get game manager
         gMan = GameObject.FindObjectOfType<GameManager>();

@@ -207,15 +207,16 @@
      <Compile Include="Assets\Resources\Scripts\AudioManager.cs" />
      <Compile Include="Assets\Resources\Scripts\AutoDestroy.cs" />
      <Compile Include="Assets\Resources\Scripts\BombScript.cs" />
+     <Compile Include="Assets\Resources\Scripts\CameraScript.cs" />
      <Compile Include="Assets\Resources\Scripts\ChargeScript.cs" />
      <Compile Include="Assets\Resources\Scripts\Flash.cs" />
      <Compile Include="Assets\Resources\Scripts\GameManager.cs" />
      <Compile Include="Assets\Resources\Scripts\JugScript.cs" />
-     <Compile Include="Assets\Resources\Scripts\KnobMovement.cs" />
      <Compile Include="Assets\Resources\Scripts\LevelManager.cs" />
      <Compile Include="Assets\Resources\Scripts\MenuScript.cs" />
      <Compile Include="Assets\Resources\Scripts\PersonScript.cs" />
      <Compile Include="Assets\Resources\Scripts\PlayMovie.cs" />
+     <Compile Include="Assets\Resources\Scripts\PlayerScript.cs" />
      <Compile Include="Assets\Resources\Scripts\RotLock.cs" />
      <Compile Include="Assets\Resources\Scripts\ScoreScript.cs" />
      <Compile Include="Assets\Resources\Scripts\Spin.cs" />

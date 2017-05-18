@@ -162,7 +162,7 @@ public class MenuScript : MonoBehaviour
 	{
 		foreach (GameObject player in gMan.Players) 
 		{
-			KnobMovement temp = player.GetComponent<KnobMovement> ();
+			PlayerScript temp = player.GetComponent<PlayerScript> ();
 			int character = temp.characterNumber;
 			int playerID = temp.playerID;
 			GameObject newScore = Instantiate (CharacterScores [character], new Vector3(0.0f, 0.0f, 0.0f), Quaternion.identity) as GameObject;

@@ -4,7 +4,7 @@ using System.Collections;
 public class AbilityBarScript : MonoBehaviour
 {
     // Object references 
-    private KnobMovement playerScript;
+	private PlayerScript playerScript;
     private GameManager gMan;
     private SpriteRenderer[] renderers;
 
@@ -22,7 +22,7 @@ public class AbilityBarScript : MonoBehaviour
         gMan = GameObject.FindObjectOfType<GameManager>();
         foreach (GameObject player in gMan.Players)
         {
-            KnobMovement script = player.GetComponent<KnobMovement>();
+            PlayerScript script = player.GetComponent<PlayerScript>();
             if (script.characterNumber == myCharacter)
             {
                 playerScript = script;

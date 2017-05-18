@@ -4,14 +4,14 @@ using System.Collections;
 public class PersonScript : MonoBehaviour {
 
 	private SpriteRenderer myRenderer;
-	private KnobMovement ringScript;
+	private PlayerScript ringScript;
 	public int numWins = 0;
 
 	// Use this for initialization
 	void Start () 
 	{
 		myRenderer = gameObject.GetComponent<SpriteRenderer> ();
-		ringScript = gameObject.GetComponentInParent<KnobMovement> ();
+		ringScript = gameObject.GetComponentInParent<PlayerScript> ();
 	}
 	
 	// Update is called once per frame

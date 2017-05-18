@@ -1,27 +1,45 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
-public class KnobMovement : MonoBehaviour {
+public class PlayerScript : MonoBehaviour {
 
-	public Rigidbody2D rigBody;
+	// Script references 
 	public Splash splash;
-	public int playerID;
 	private GameManager gMan;
 	private AudioManager audioMan;
 
-    // Personal Attributes
-    public GameObject ability;
+	// Physics
+	public Rigidbody2D rigBody;
 	public float force;
-	private float lastAngle;
-	public bool destroyMe;
-	public Vector3 SpawnLocation;
-	private bool match;
-	private SpriteRenderer ringRenderer;
-	public int characterNumber = 0;
-	private float tapTimer = 0;
+	// Limiting velocity
+	private float startDrag;
+	private float dragTimer = 1.0f;
+	private bool drag = false;
 
-    // Ability charge
+	// Controller
+	public enum ControllerState { Char, Power, Ready, Game };
+	public ControllerState controllerState = ControllerState.Char;
+	public int hoveredChar = 0;
+	public int hoveredPow = 0;
+	public bool locked = false;
+	public bool ready = false;
+	public bool recievedMessage = false;
+
+    // Personal Attributes
+	public Vector3 SpawnLocation;
+	private SpriteRenderer ringRenderer;
+	public int playerID;
+	public int deviceID;
+	public int characterNumber = 0;
+	private float angle = 0;
+	private float tapTimer = 0;
+	public bool destroyMe;
+	private bool match;
+
+    // Ability
+	public GameObject ability;
     public const int CHARGE_FULL = 100;
     public const int CHARGE_EMPTY = 1;
     public int chargeLevel = CHARGE_EMPTY;
@@ -38,11 +56,6 @@ public class KnobMovement : MonoBehaviour {
 	private bool colliding;
     private Collision2D lastCollision;
 
-	// Limiting velocity
-	private float startDrag;
-	private float dragTimer = 1.0f;
-	private bool drag = false;
-
 	// Don't play audio for same collision within 0.5 seconds
 	private float audioTimer = 0.5f;
 	private int lastCollided = 0; 
@@ -52,19 +65,16 @@ public class KnobMovement : MonoBehaviour {
 	{
 		// Get objects and initialise variables
 		rigBody = gameObject.GetComponent<Rigidbody2D> ();
+		startDrag = rigBody.drag;
 		gMan = GameObject.FindObjectOfType<GameManager> ();
 		audioMan = GameObject.FindGameObjectWithTag ("Audio").GetComponent<AudioManager> ();
-		lastAngle = 0.0f;
 		ringRenderer = gameObject.GetComponent<SpriteRenderer> ();
 		col = gameObject.GetComponent<CircleCollider2D> ();
 
-		startDrag = rigBody.drag;
-
 		// Generate random start position
 		SpawnLocation.Set(Random.Range(-6,6),Random.Range(-4,4), 0);
-
 		do 
-		{
+		{ // Check if it overlaps another player
 			foreach (GameObject i in gMan.Players)
 			{
 				if(SpawnLocation.x <  i.transform.position.x + 3.0f && SpawnLocation.x > i.transform.position.x - 3.0   && SpawnLocation.y < i.transform.position.y + 3.0 && SpawnLocation.y > i.transform.position.y- 3.0)
@@ -79,7 +89,6 @@ public class KnobMovement : MonoBehaviour {
 			}
 		} 
 		while(match);
-
 		transform.position = SpawnLocation;
 	}
 
@@ -136,47 +145,84 @@ public class KnobMovement : MonoBehaviour {
 				dragTimer = 1.0f;
 			}
 		}
-
-		if ((gMan.getAngle (playerID) != lastAngle) && (gMan.GameState == GameManager.STATE.GAME) && (!destroyMe) && (tapTimer > 0.125f) && (!gMan.menu.displayCountdown))
-		{ // New touch press
-
-			// Get angle
-			lastAngle = gMan.getAngle (playerID);
-
-			// Get mouse and player pos in world coords
-			Vector2 playerPos = transform.position;
-
-			// Find point on circumfrence to spawn splash
-			Vector2 splashPos = CirclePos (playerPos, (1.0f), gMan.getAngle(playerID)* Mathf.Deg2Rad);
-
-			// Spawn splash
-			Instantiate(splash, splashPos, Quaternion.identity);
-
-			// Calculate direction to push player
-			Vector2 direction = playerPos - splashPos;
-			direction.Normalize ();
-
-            if (chargeAbilityReady)
-            {
-                // Do charge boost instead
-                GetComponentInChildren<ChargeScript>().direction = direction;
-                GetComponentInChildren<ChargeScript>().angle = gMan.getAngle(playerID);
-                GetComponentInChildren<ChargeScript>().fire = true;
-                chargeAbilityReady = false;
-
-                // Reset timer
-                tapTimer = 0;
-            }
-            else
-            {
-                // Add force
-                rigBody.AddForce(direction * force, ForceMode2D.Impulse);
-
-                // Reset timer
-                tapTimer = 0;
-            }
-		}
     }
+
+	// Called by game manager when this player's device sends an input message
+	public void GameMessage(JToken data)
+	{
+		// Check if message is power up or movement
+		if (data["button"] != null)
+		{
+			if (data["button"].ToString() == "pow")
+			{
+				// Activate ability if player is alive				
+				if (!destroyMe)
+				{ 
+					UseAbility();
+				}
+			}
+		}
+		if (data["move"] != null)
+		{
+			if (data["move"] != null)
+			{				
+				//get the angle information from the players tap
+				angle = (float)data["move"];
+
+				//calculate ere to apply force to the player
+				if (angle > 0)
+				{
+					angle = 180 - angle;
+				}
+				else if (angle < 0)
+				{
+					angle -= 180;
+					if (angle < 0)
+					{
+						angle += 360;
+					}
+					angle = 360 - angle;
+				}
+			}
+
+			if ((gMan.GameState == GameManager.STATE.GAME) && (!destroyMe) && (tapTimer > 0.125f) && (!gMan.menu.displayCountdown))
+			{ // New touch press
+
+				// Get mouse and player pos in world coords
+				Vector2 playerPos = transform.position;
+
+				// Find point on circumfrence to spawn splash
+				Vector2 splashPos = CirclePos (playerPos, (1.0f), angle * Mathf.Deg2Rad);
+
+				// Spawn splash
+				Instantiate(splash, splashPos, Quaternion.identity);
+
+				// Calculate direction to push player
+				Vector2 direction = playerPos - splashPos;
+				direction.Normalize ();
+
+				if (chargeAbilityReady)
+				{
+					// Do charge boost instead
+					GetComponentInChildren<ChargeScript>().direction = direction;
+					GetComponentInChildren<ChargeScript>().angle = angle;
+					GetComponentInChildren<ChargeScript>().fire = true;
+					chargeAbilityReady = false;
+
+					// Reset timer
+					tapTimer = 0;
+				}
+				else
+				{
+					// Add force
+					rigBody.AddForce(direction * force, ForceMode2D.Impulse);
+
+					// Reset timer
+					tapTimer = 0;
+				}
+			}
+		}
+	}
 
     public void UseAbility()
     {
@@ -190,7 +236,7 @@ public class KnobMovement : MonoBehaviour {
             }
             if (newAbility.GetComponent<ChargeScript>() != null)
             {
-                newAbility.GetComponent<ChargeScript>().SetAngle(gMan.getAngle(playerID));
+                newAbility.GetComponent<ChargeScript>().SetAngle(angle);
             }
             abilityAvailable = false;
             chargeLevel = CHARGE_EMPTY;
@@ -245,7 +291,7 @@ public class KnobMovement : MonoBehaviour {
 
             // Add bonus to player that killed you
             if (lastCollision != null)
-            lastCollision.gameObject.GetComponent<KnobMovement>().chargeLevel += killBoost;
+				lastCollision.gameObject.GetComponent<PlayerScript>().chargeLevel += killBoost;
 			
 			// Play death sound
 			audioMan.PlayDeath();			
