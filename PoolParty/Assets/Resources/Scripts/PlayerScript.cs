@@ -13,6 +13,7 @@ public class PlayerScript : MonoBehaviour {
 	// Physics
 	public Rigidbody2D rigBody;
 	public float force;
+	private const int MAX_VELOCITY = 30;
 	// Limiting velocity
 	private float startDrag;
 	private float dragTimer = 1.0f;
@@ -131,7 +132,7 @@ public class PlayerScript : MonoBehaviour {
         }
 
 		// Limit velocity
-		if (rigBody.velocity.magnitude > 25) 
+		if (rigBody.velocity.magnitude > MAX_VELOCITY) 
 		{
 			rigBody.drag = 20;
 			drag = true;
@@ -151,6 +152,7 @@ public class PlayerScript : MonoBehaviour {
 	public void GameMessage(JToken data)
 	{
 		// Check if message is power up or movement
+		// TODO: Investigate problems with power up button. Doesn't always turn on/off at right times
 		if (data["button"] != null)
 		{
 			if (data["button"].ToString() == "pow")
@@ -378,7 +380,7 @@ public class PlayerScript : MonoBehaviour {
                 // Bounce attacker off
                 Vector3 direction = collision.transform.position - transform.position;
                 direction.Normalize();
-                collision.rigidbody.AddForce(direction * 50.0f, ForceMode2D.Impulse);
+                collision.rigidbody.AddForce(direction * 100.0f, ForceMode2D.Impulse);
                 audioMan.PlayJugBounce();
             }
 		}

@@ -31,7 +31,7 @@ public class JugScript : MonoBehaviour
         // Apply initial effects
         defaultDrag = myPlayerScript.rigBody.drag;
         defaultScale = myPlayerScript.gameObject.transform.localScale;
-        myPlayerScript.rigBody.drag = 15.0f;
+        myPlayerScript.rigBody.drag = 12.5f;
         //myPlayerScript.gameObject.transform.localScale *= 1.25f;
 
         // Play activate audio

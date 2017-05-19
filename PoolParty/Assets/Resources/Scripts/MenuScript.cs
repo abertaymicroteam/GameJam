@@ -56,12 +56,12 @@ public class MenuScript : MonoBehaviour
 		canvas = GameObject.FindGameObjectWithTag ("Scores");
 	}
 
-	public void UpdateAbilityGraphic(int i, int it){
-
+	public void UpdateAbilityGraphic(int i, int it)
+	{
 		SpriteRenderer abilityRend = ActiveGraphics[it].GetComponentsInChildren<SpriteRenderer> ()[1];
 		abilityRend.sprite = abilityGraphics [i];
-
 	}
+
 	// Update is called once per frame
 	void Update () 
 	{
@@ -91,6 +91,7 @@ public class MenuScript : MonoBehaviour
 		menuRenderer.enabled = true;
 		logo.enabled = true;
 		tapToPlay.enabled = true;
+		tapToPlay.gameObject.GetComponentsInChildren<SpriteRenderer> () [1].enabled = true;
 		foreach (GameObject graphic in ActiveGraphics) 
 		{
 			SpriteRenderer rend = graphic.GetComponentsInChildren<SpriteRenderer> ()[0];
@@ -108,6 +109,7 @@ public class MenuScript : MonoBehaviour
 		menuRenderer.enabled = false;
 		logo.enabled = false;
 		tapToPlay.enabled = false;
+		tapToPlay.gameObject.GetComponentsInChildren<SpriteRenderer> () [1].enabled = false;
 		foreach (GameObject graphic in ActiveGraphics) 
 		{
 			SpriteRenderer rend = graphic.GetComponentsInChildren<SpriteRenderer> ()[0];
@@ -140,16 +142,31 @@ public class MenuScript : MonoBehaviour
 		// Destroy and remove disconnected player's graphic
 		Destroy(ActiveGraphics[playerToRemove]);
 		ActiveGraphics.Remove (ActiveGraphics [playerToRemove]);
+
+		// Now move all higher graphics down one position
+		int it = 0;
+		foreach (GameObject graphic in ActiveGraphics) 
+		{
+			if (it >= playerToRemove) 
+			{
+				graphic.transform.position = GraphicPositions [it];
+			}
+			else
+			{
+				it++;
+			}
+		}
 	}
 
 	public void UpdateConnectGraphic(int playerNumber, int character)
 	{
 		// Updates player's graphic to new character for character selection
-		//Destroy(ActiveGraphics[playerNumber]);
-		//ActiveGraphics.Remove (ActiveGraphics [playerNumber]);
-		//GameObject newGraphic = Instantiate (CharacterGraphics [character], GraphicPositions [playerNumber], Quaternion.identity) as GameObject;
-		//ActiveGraphics.Add (newGraphic);
         ActiveGraphics[playerNumber].GetComponent<SpriteRenderer>().sprite = ConnectGraphicSprites[character];
+	}
+
+	public void ShiftConnectGraphics()
+	{
+		// Moves all higher connect graphics down a slot when a player disconnects
 	}
 
     public void HideAbilitySprite(int playerNumber)

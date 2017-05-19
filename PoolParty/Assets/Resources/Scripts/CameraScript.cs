@@ -8,10 +8,14 @@ public class CameraScript : MonoBehaviour
 	private Camera myCamera;
 	bool moving = false;
 
+	// Script references
+	private GameManager gMan;
+
 	// Use this for initialization
 	void Start () 
 	{
 		myCamera = GetComponent<Camera> ();
+		gMan = FindObjectOfType<GameManager> ().GetComponent<GameManager>();
 	}
 	
 	// Update is called once per frame
@@ -49,5 +53,33 @@ public class CameraScript : MonoBehaviour
 		// Hide loading screen once off camera    (TODO: Do this elsewhere by checking when this function finishes somehow, so that this function can be used generically to move the camera rather than just at the start)
 		MenuScript menu =  GameObject.FindGameObjectWithTag("Menu").GetComponent<MenuScript>();
 		menu.HideTitle ();
+	}
+
+	public IEnumerator ResizeCameraUp(float time, float desiredSize)
+	{
+		float currentSize = myCamera.orthographicSize;
+
+		float currTime = 0.0f;
+
+		while (currTime <= time)
+		{
+			myCamera.orthographicSize = Mathf.Lerp (currentSize, desiredSize, currTime / time);
+			currTime += Time.deltaTime;
+			yield return null;
+		}
+	}
+
+	public IEnumerator ResizeCameraDown(float time, float desiredSize)
+	{
+		float currentSize = myCamera.orthographicSize;
+
+		float currTime = 0.0f;
+
+		while (currTime <= time && !gMan.winner)
+		{
+			myCamera.orthographicSize = Mathf.Lerp(currentSize, desiredSize, currTime / time);
+			currTime += Time.deltaTime;
+			yield return null;
+		}
 	}
 }
