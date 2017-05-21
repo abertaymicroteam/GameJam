@@ -135,6 +135,7 @@ public class GameManager : MonoBehaviour
 				{	
 					cameraScript.MoveCamera (new Vector3 (0.0f, 0.0f, -10.0f), 0.75f);
 					ReadyToPlay ();
+                    MessageAll();
 				} 
 				else 
 				{
@@ -1019,9 +1020,12 @@ public class GameManager : MonoBehaviour
             {
                 // Send connection message to controller
                 JObject connectionMessage = new JObject();
-                connectionMessage.Add("state", (int)GameState);
+                connectionMessage.Add("state", 0);
                 connectionMessage.Add("angle", 0);
-				connectionMessage.Add("charNo", PlayerScripts[ID - 1].hoveredChar + 1);
+                if (AirConsole.instance.GetControllerDeviceIds().Count > 1)
+                {
+                    connectionMessage.Add("charNo", PlayerScripts[ID - 1].hoveredChar + 1);
+                }
                 AirConsole.instance.Message(device_id, connectionMessage);
                 timer = 0;
             }
