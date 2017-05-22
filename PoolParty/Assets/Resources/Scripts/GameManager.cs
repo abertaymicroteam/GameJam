@@ -18,11 +18,6 @@ public class GameManager : MonoBehaviour
 	private AudioManager audioMan;
 	private CameraScript cameraScript;
 
-	// Objects for Shrinking
-	private GameObject border;
-	private GameObject boundaries;
-	private GameObject scores;
-
 	// Players
 	public List<GameObject> Players;
 	public List<PlayerScript> PlayerScripts;
@@ -35,7 +30,7 @@ public class GameManager : MonoBehaviour
 	private int prevConnectedPlayers = 0;
 	private int destroyedPlayers = 0;
 	private int msgI = 0; // Update message iterator
-	private float messagetimer = 0.1f; // Update messages limited to 10 per second
+	private float messagetimer = 0.2f; // Update messages limited to 10 per second
 
 	// Misc
 	private bool restartTap = false;
@@ -48,9 +43,15 @@ public class GameManager : MonoBehaviour
 	public float rotatormes;
 	private bool adShowing = false;
 	private bool recievedPlay = false;
+	private bool firstConnect = true;
 	#if !DISABLE_AIRCONSOLE 
 
 	// Play area shrinking
+	private GameObject HUD;
+	private Vector3 HUDDefault = new Vector3 (1.0f, 1.0f, 1.0f);
+	private Vector3 HUDShrink1 = new Vector3 (0.8f, 0.8f, 0.8f);
+	private Vector3 HUDShrink2 = new Vector3 (0.6f, 0.6f, 0.6f);
+	private GameObject border;
 	public float shrinkTimer = 15.0f;
 	public float showdownTimer = 5.0f;
 	public bool shrunk = false;
@@ -80,12 +81,10 @@ public class GameManager : MonoBehaviour
 		audioMan = GameObject.FindGameObjectWithTag("Audio").GetComponent<AudioManager>();
 
 		// Get objects to shrink
-		// TODO: Perhaps bundle all of these elements under one "HUD" object. Means only need one
-		// resize routine and makes it quicker to make new UI elements shrink to the right size as they will all 
-		// shrink the same amount relative to parent.
-		border = GameObject.FindGameObjectWithTag("Border");
-		boundaries = GameObject.FindGameObjectWithTag ("Boundaries");
-		scores = GameObject.FindGameObjectWithTag ("Scores");
+		HUD = GameObject.FindGameObjectWithTag ("HUD");
+
+		// Get border object for flashing/changing colour
+		border = GameObject.FindWithTag("Border");
 
 		// Get camera script
 		Camera cam = GameObject.FindGameObjectWithTag ("MainCamera").GetComponent<Camera>();
@@ -131,11 +130,12 @@ public class GameManager : MonoBehaviour
 				audioMan.PlayDrop ();
 
 				// Is the game ready to play? (2 player connected)
-				if (AirConsole.instance.GetControllerDeviceIds ().Count > 1) 
+				if (AirConsole.instance.GetControllerDeviceIds ().Count == 2 && firstConnect) 
 				{	
 					cameraScript.MoveCamera (new Vector3 (0.0f, 0.0f, -10.0f), 0.75f);
 					ReadyToPlay ();
                     MessageAll();
+					firstConnect = false;
 				} 
 				else 
 				{
@@ -165,6 +165,7 @@ public class GameManager : MonoBehaviour
     }
 
 	/// If the game is running and one of the active players leaves, we remove their character and continue playing.
+	///
 	void OnDisconnect (int device_id) 
 	{
 		int active_player = GetPlayerNumberWithDeviceId(device_id);
@@ -209,11 +210,11 @@ public class GameManager : MonoBehaviour
 
             // If there is only one player connected, go back to menu and wait for connection.
 			// TODO: Remaining player's controller should return to character select state once this happens, and players can reconnect and game can restart
-            if (connectedPlayers == 1) 
+			// TODO: Zoom out if game is shrunk when players disconnect
+            if (connectedPlayers <= 1) 
 			{
 				menu.ShowMenu ();
 				GameState = STATE.MENU;
-				ShuffleArray<int> (charNums);
             }
 		}
 	}
@@ -629,14 +630,9 @@ public class GameManager : MonoBehaviour
 
                     // Zoom out
                     int time = 2; // Seconds
-					Vector3 borderDest = new Vector3 (0.9262f, 0.93f, 0.9279742f);
-					Vector3 boundaryDest = new Vector3 (1.0f, 1.0f, 1.0f);
-					Vector3 scoresDest = new Vector3 (0.36841f, 0.36841f, 0.36841f);
 					int camSize = 5;
 
-					StartCoroutine (ResizeUp (time, border, borderDest));
-					StartCoroutine (ResizeUp (time, boundaries, boundaryDest));
-					StartCoroutine (ResizeUp (time, scores, scoresDest));
+					StartCoroutine (ResizeUp (time, HUD, HUDDefault));
 					StartCoroutine (cameraScript.ResizeCameraUp (time, camSize));
 				}
 				if (borderRed)
@@ -703,14 +699,9 @@ public class GameManager : MonoBehaviour
                     
                     // Zoom out
 					float time = 1.5f; // Seconds
-					Vector3 borderDest = new Vector3 (0.9262f, 0.93f, 0.9279742f);
-					Vector3 boundaryDest = new Vector3 (1.0f, 1.0f, 1.0f);
-					Vector3 scoresDest = new Vector3 (0.36841f, 0.36841f, 0.36841f);
 					int camSize = 5;
 
-					StartCoroutine (ResizeUp (time, border, borderDest));
-					StartCoroutine (ResizeUp (time, boundaries, boundaryDest));
-					StartCoroutine (ResizeUp (time, scores, scoresDest));
+					StartCoroutine (ResizeUp (time, HUD, HUDDefault));
 					StartCoroutine (cameraScript.ResizeCameraUp (time, camSize));
 				}
 				if (borderRed)
@@ -777,16 +768,11 @@ public class GameManager : MonoBehaviour
 					{ 
 						// Shrink the pool
 						float time = 1.5f; // Seconds
-						Vector3 borderDest = new Vector3 (0.7416216f, 0.7446644f, 0.7430422f);
-						Vector3 boundaryDest = new Vector3 (0.80553f, 0.80553f, 0.80553f);
-						Vector3 scoresDest = new Vector3 (0.29f, 0.29f, 0.29f);
 						int camSize = 4;
 
 						audioMan.PlayStretch ();
-						StartCoroutine (ResizeDown (time, border, borderDest));
-						StartCoroutine (ResizeDown (time, boundaries, boundaryDest));
 						StartCoroutine (cameraScript.ResizeCameraDown (time, camSize));
-						StartCoroutine (ResizeDown (time, scores, scoresDest));
+						StartCoroutine (ResizeDown (time, HUD, HUDShrink1));
 						shrunk = true;
 						shrinkTimer = 15.0f;
 					}
@@ -806,16 +792,11 @@ public class GameManager : MonoBehaviour
 				{
 					// Shrink
 					float time = 3.0f; // Seconds
-					Vector3 borderDest = new Vector3 (0.5572687f, 0.5595551f, 0.5583362f);
-					Vector3 boundaryDest = new Vector3 (0.6485946f, 0.6485946f, 0.6485946f);
-					Vector3 scoresDest = new Vector3 (0.22f, 0.22f, 0.22f);
 					int camSize = 3;
 
 					audioMan.PlayShowdown ();
-					StartCoroutine (ResizeDown (time, border, borderDest));
-					StartCoroutine (ResizeDown (time, boundaries, boundaryDest));
 					StartCoroutine (cameraScript.ResizeCameraDown (time, camSize));
-					StartCoroutine (ResizeDown (time, scores, scoresDest));
+					StartCoroutine (ResizeDown (time, HUD, HUDShrink2));
 					showdown = true;
 					showdownTimer = 5.0f;
 				}
@@ -845,7 +826,7 @@ public class GameManager : MonoBehaviour
 					//increase iterator
 					msgI++;
 				}
-				messagetimer = 0.1f;
+				messagetimer = 0.2f;
 			}
 
     
@@ -1013,7 +994,8 @@ public class GameManager : MonoBehaviour
     {
         float timer = 0;
         
-		while (!PlayerScripts[ID - 1].recievedMessage)
+		Debug.Log ("Connect Message Function. ID = " + ID);
+		while (PlayerScripts.Count > 0 && !PlayerScripts[ID - 1].recievedMessage)
         {
             timer += Time.deltaTime;
             if (timer >= 0.1)
@@ -1130,7 +1112,7 @@ public class GameManager : MonoBehaviour
 
 		JObject statemsg = new JObject ();	
 
-		//iterate through all players calculate angles and send to respective controllers 
+		//iterate through all players and send game state
 		foreach (GameObject i in Players) 
 		{
 			//add state

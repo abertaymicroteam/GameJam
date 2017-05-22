@@ -51,7 +51,7 @@ public class ChargeScript : MonoBehaviour
             if (!rotated)
             {
 
-                // rotate particle system and rotor
+                // rotate particle system
                 transform.rotation = Quaternion.Euler(0, 0, -angle);
                 Debug.Log("Rotation " + angle);
                 rotated = true;

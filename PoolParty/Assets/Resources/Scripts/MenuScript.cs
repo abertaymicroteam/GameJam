@@ -10,7 +10,7 @@ public class MenuScript : MonoBehaviour
 	private SpriteRenderer menuRenderer;
 	private AudioManager audioMan;
 	private GameManager gMan;
-	private GameObject canvas;
+	private GameObject scoresObject;
 
 	// Graphics
 	public List<SpriteRenderer> countdownNums = new List<SpriteRenderer> ();
@@ -53,7 +53,7 @@ public class MenuScript : MonoBehaviour
 
 		audioMan = GameObject.FindGameObjectWithTag ("Audio").GetComponent<AudioManager> ();
 		gMan = GameObject.FindObjectOfType<GameManager> ();
-		canvas = GameObject.FindGameObjectWithTag ("Scores");
+		scoresObject = GameObject.FindGameObjectWithTag ("Scores");
 	}
 
 	public void UpdateAbilityGraphic(int i, int it)
@@ -183,7 +183,7 @@ public class MenuScript : MonoBehaviour
 			int character = temp.characterNumber;
 			int playerID = temp.playerID;
 			GameObject newScore = Instantiate (CharacterScores [character], new Vector3(0.0f, 0.0f, 0.0f), Quaternion.identity) as GameObject;
-			newScore.transform.SetParent (canvas.transform);
+			newScore.transform.SetParent (scoresObject.transform);
 			newScore.transform.localPosition = ScorePositions [playerID];
 			if (character == 0) {
 				// Move phil right a bit..
@@ -197,7 +197,7 @@ public class MenuScript : MonoBehaviour
 	public void AddScore(int character, int connectedPlayers)
 	{
 		GameObject newScore = Instantiate (CharacterScores [character], new Vector3(0.0f, 0.0f, 0.0f), Quaternion.identity) as GameObject;
-		newScore.transform.SetParent (canvas.transform);
+		newScore.transform.SetParent (scoresObject.transform);
 		newScore.transform.localPosition = ScorePositions [connectedPlayers];
 		if (character == 0) {
 			// Move phil right a bit..

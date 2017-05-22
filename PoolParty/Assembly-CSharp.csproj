@@ -46,6 +46,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\AirConsole\examples\basic\ExampleBasicLogic.cs" />
+     <Compile Include="Assets\AirConsole\examples\pong\ExamplePongLogic.cs" />
+     <Compile Include="Assets\AirConsole\examples\pong\scripts\Racket.cs" />
+     <Compile Include="Assets\AirConsole\extras\HighScoreHelper.cs" />
      <Compile Include="Assets\AirConsole\plugins\Newtonsoft.Json\Bson\BsonBinaryType.cs" />
      <Compile Include="Assets\AirConsole\plugins\Newtonsoft.Json\Bson\BsonBinaryWriter.cs" />
      <Compile Include="Assets\AirConsole\plugins\Newtonsoft.Json\Bson\BsonObjectId.cs" />
