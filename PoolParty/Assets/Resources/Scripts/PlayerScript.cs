@@ -13,7 +13,7 @@ public class PlayerScript : MonoBehaviour {
 	// Physics
 	public Rigidbody2D rigBody;
 	public float force;
-	private const int MAX_VELOCITY = 30;
+	private const int MAX_VELOCITY = 50;
 	// Limiting velocity
 	private float startDrag;
 	private float dragTimer = 1.0f;
@@ -50,12 +50,18 @@ public class PlayerScript : MonoBehaviour {
     public int killBoost = 10;
     public bool abilityAvailable = false;
     public bool chargeAbilityReady = false;
+    public bool abilityInUse = false;
 
 	// Collisions
 	private CircleCollider2D col;
 	private List<Collider2D> currentColliders = new List<Collider2D>();
 	private bool colliding;
     private Collision2D lastCollision;
+
+    // Hold
+    private float holdtimer = 0.0f;
+    private bool applyDrag = false;
+    private bool runHoldtimer = false;
 
 	// Don't play audio for same collision within 0.5 seconds
 	private float audioTimer = 0.5f;
@@ -146,6 +152,8 @@ public class PlayerScript : MonoBehaviour {
 				dragTimer = 1.0f;
 			}
 		}
+
+        CheckBrakes();
     }
 
 	// Called by game manager when this player's device sends an input message
@@ -224,7 +232,23 @@ public class PlayerScript : MonoBehaviour {
 				}
 			}
 		}
-	}
+        if (data["input"] != null)
+        {
+            if (data["input"].ToString() == "hold_start")
+            {
+                Debug.Log("hold start");
+                runHoldtimer = true;
+            }
+            if (data["input"].ToString() == "hold_end")
+            {
+                Debug.Log("hold end");
+                runHoldtimer = false;
+                holdtimer = 0.0f;
+                applyDrag = false;
+                rigBody.drag = 0.5f;
+            }
+        }
+    }
 
     public void UseAbility()
     {
@@ -232,8 +256,10 @@ public class PlayerScript : MonoBehaviour {
         if (abilityAvailable && gMan.GameState == GameManager.STATE.GAME)
         {
             GameObject newAbility = Instantiate(ability, gameObject.transform, false) as GameObject;
+            abilityInUse = true;
             if (newAbility.GetComponent<BombScript>() != null)
             {
+                abilityInUse = false; // Don't disable braking for bomb ability
                 newAbility.GetComponent<BombScript>().SetOwner(gameObject.GetInstanceID());
             }
             if (newAbility.GetComponent<ChargeScript>() != null)
@@ -245,6 +271,30 @@ public class PlayerScript : MonoBehaviour {
        
         }
       
+    }
+
+    private void CheckBrakes()
+    {
+        Debug.Log("function entered");
+        if (runHoldtimer)
+        {
+            holdtimer += Time.deltaTime;
+        }
+        if(holdtimer > 0.1f)
+        {
+            applyDrag = true;
+        }
+        if(holdtimer > 0.6f || abilityInUse)
+        {
+            applyDrag = false;
+            runHoldtimer = false;
+            holdtimer = 0.0f;
+            rigBody.drag = 0.5f;
+        }
+        if (applyDrag && !abilityInUse)
+        {
+            rigBody.drag = 3.0f;
+        }
     }
 
 	Vector2 CirclePos(Vector2 centre, float radius, float angle)

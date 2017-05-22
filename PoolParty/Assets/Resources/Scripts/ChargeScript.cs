@@ -11,7 +11,7 @@ public class ChargeScript : MonoBehaviour
     private AudioManager audioMan;
 
     // Attributes
-    public float timer = 3.0f;
+    public float timer = 1.0f;
     float forceTimer = 0.1f;
     public PhysicsMaterial2D chargeMaterial;
     private PhysicsMaterial2D defaultMaterial;
@@ -86,6 +86,11 @@ public class ChargeScript : MonoBehaviour
                 myPlayerScript.GetComponent<CircleCollider2D>().sharedMaterial = defaultMaterial;
                 myPlayerScript.rigBody.drag = defaultDrag;
                 forceApplied = false;
+
+                // Set ability bool in player script
+                myPlayerScript.abilityInUse = false;
+
+                // Destroy game object
                 Destroy(gameObject);
             }
         }
