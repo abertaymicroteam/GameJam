@@ -65,6 +65,10 @@ public class JugScript : MonoBehaviour
             myPlayerScript.rigBody.drag = defaultDrag;
             myPlayerScript.gameObject.transform.localScale = defaultScale;
             audioMan.PlayDeath(); // Pop sound works well here
+
+            // Set ability bool in player script
+            myPlayerScript.abilityInUse = false;
+
             Destroy(gameObject);
         }
 
