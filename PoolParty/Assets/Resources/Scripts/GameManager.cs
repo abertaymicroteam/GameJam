@@ -30,7 +30,7 @@ public class GameManager : MonoBehaviour
 	private int prevConnectedPlayers = 0;
 	private int destroyedPlayers = 0;
 	private int msgI = 0; // Update message iterator
-	private float messagetimer = 0.2f; // Update messages limited to 10 per second
+	private float messagetimer = 0.5f; // Update messages limited to 10 per second
 
 	// Misc
 	private bool restartTap = false;
@@ -44,6 +44,7 @@ public class GameManager : MonoBehaviour
 	private bool adShowing = false;
 	private bool recievedPlay = false;
 	private bool firstConnect = true;
+	private bool tutorial = false;
 	#if !DISABLE_AIRCONSOLE 
 
 	// Play area shrinking
@@ -132,10 +133,8 @@ public class GameManager : MonoBehaviour
 				// Is the game ready to play? (2 player connected)
 				if (AirConsole.instance.GetControllerDeviceIds ().Count == 2 && firstConnect) 
 				{	
-					cameraScript.MoveCamera (new Vector3 (0.0f, 0.0f, -10.0f), 0.75f);
-					ReadyToPlay ();
-                    MessageAll();
-					firstConnect = false;
+					cameraScript.MoveCamera (new Vector3 (-17.82f, 0.0f, -10.0f), 0.75f);
+					tutorial = true;
 				} 
 				else 
 				{
@@ -227,6 +226,15 @@ public class GameManager : MonoBehaviour
     void OnMessage(int device_id, JToken data)
 	{
 		Debug.Log ("Player number is " + GetPlayerNumberWithDeviceId(device_id));
+
+		if (tutorial) 
+		{
+			cameraScript.MoveCamera (new Vector3 (0.0f, 0.0f, -10.0f), 0.75f);
+			ReadyToPlay ();
+			MessageAll ();
+			firstConnect = false;
+			tutorial = false;
+		}
 
         if (GameState == STATE.RESTART)
         {
@@ -826,7 +834,7 @@ public class GameManager : MonoBehaviour
 					//increase iterator
 					msgI++;
 				}
-				messagetimer = 0.2f;
+				messagetimer = 0.5f;
 			}
 
     

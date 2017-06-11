@@ -58,10 +58,13 @@ public class PlayerScript : MonoBehaviour {
 	private bool colliding;
     private Collision2D lastCollision;
 
-    // Hold
+    // Braking
+	public GameObject brakeParticles;
     private float holdtimer = 0.0f;
+	private float brakeCooldownTimer = 0.0f;
     private bool applyDrag = false;
-    private bool runHoldtimer = false;
+	private bool runHoldtimer = false;
+	private bool runCoolDownTimer = false;
 
 	// Don't play audio for same collision within 0.5 seconds
 	private float audioTimer = 0.5f;
@@ -280,20 +283,28 @@ public class PlayerScript : MonoBehaviour {
         {
             holdtimer += Time.deltaTime;
         }
-        if(holdtimer > 0.1f)
+		if (runCoolDownTimer) 
+		{
+			brakeCooldownTimer += Time.deltaTime;
+			if (brakeCooldownTimer > 3.0f) 
+			{
+				runCoolDownTimer = false;
+				brakeCooldownTimer = 0.0f;
+			}
+		}
+		if(holdtimer > 0.1f && !runCoolDownTimer && !applyDrag && !abilityInUse)
         {
+			Instantiate (brakeParticles, transform.position, Quaternion.identity);
+			rigBody.drag = 6.0f;
             applyDrag = true;
         }
-        if(holdtimer > 0.6f || abilityInUse)
+        if(holdtimer > 0.6f)
         {
             applyDrag = false;
             runHoldtimer = false;
+			runCoolDownTimer = true;
             holdtimer = 0.0f;
             rigBody.drag = 0.5f;
-        }
-        if (applyDrag && !abilityInUse)
-        {
-            rigBody.drag = 3.0f;
         }
     }
 
