@@ -39,6 +39,11 @@
 
             //*********INPUTS**********//
 
+            //TUTORIAL
+            //CONTINUE
+            var Tutorial_Continue = document.getElementById('tutorial_continue');
+            Tutorial_Continue.addEventListener('touchstart', tutorialContinue);
+
             //CHARACTER SELECT
             //LEFT
             var CharacterSelect_Left = document.getElementById('left_char');
@@ -93,7 +98,17 @@
                 //FROM SCREEN
                 if (from == AirConsole.SCREEN) {
 
+                    
                     //****MENUS****//
+                    //TUTORIAL
+                    //Connection message has been recieved hand shake with screen
+                    //if (data.connect) {
+                    if (state == -1) {
+                        state = 0;
+                        vm.show("tutorial");
+                        airconsole.message(AirConsole.SCREEN, { title: "receivedChar" });
+                    }
+                    //}
 
                     //CHARACTER SELECT
                     //Character hovered information
@@ -141,14 +156,17 @@
                                 CharacterSelect_Name.style.backgroundImage = "url(tamName.png)";
                                 break;
                         }
-
-                        //Error handling and handshake that information has been recieved 
-                        vm.show("menu_char");
-                        airconsole.message(AirConsole.SCREEN, { title: "recievedChar" });
-                        if (state == -1) {
-                            state = 0;
-                        }
                     }
+
+                    if (state == 0)
+                    {
+                        if (data.tutorial || data.state || data.charNo ){
+                        vm.show("menu_char");
+                        state = 1;
+                        }
+
+                    }
+                   
 
                     //Character avaliability
                     if (data.available)
@@ -170,7 +188,7 @@
                     //Move to AbilitySelect when conformation of character select
                     if (data.char)
                     {
-                        state = 1;                  //update state
+                        state = 2;                  //update state
                         vm.show("menu_pow");        //show ability menu
                     }
 
@@ -179,7 +197,7 @@
                     //Move to ReadyScreen when given confirmation on ability select
                     if (data.pow)
                     {
-                        state = 2;                  //update state 
+                        state = 3;                  //update state 
                         vm.show("menu_ready");      //show ready screen
                     }
 
@@ -192,6 +210,7 @@
                         var ReadyScreen_Play = document.getElementById('ready_play');
                         ReadyScreen_Play.addEventListener('touchstart', play);
                         ReadyScreen_Play.style.backgroundImage = "url(Play.png)";
+                        ReadyScreen_Play.style.visibility = 'visible';
                         //Handshake play button recieved 
                         airconsole.message(AirConsole.SCREEN, { title: "recievedPlay" });
                     }
@@ -293,6 +312,16 @@
 
         //********************BUTTON FUNCTIONS*******************//
 
+        //****TUTORIAL****//
+        
+        //CONTINUE
+        function tutorialContinue(event) {
+            //Inform screen of input
+            airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "continue" });
+            vm.show("menu_char");
+            state = 1;
+        }
+
         //****MENU****//
 
         //LEFT
@@ -302,7 +331,7 @@
             switch (state)
             {
                 //CHARACTER SELECT 
-                case 0:
+                case 1:
 
                     //Allow left only to be pressed if the character  currently hovered is later than the first in the array 
                     if (characterSelect > 1)
@@ -347,7 +376,7 @@
                     break;
                 
                 //ABILITY SELECT
-                case 1:
+                case 2:
                     //If the power up selected is greate than 1 allow for the left button to shift left in the array
                     if (powerupSelected > 1)
                     {
@@ -385,7 +414,7 @@
             switch (state)
             {
                 //CHARACTER SELECT
-                case 0:
+                case 1:
                     
                     //If the current character being displayed is not the last in the array
                     if (characterSelect < 8)
@@ -431,7 +460,7 @@
                     break;
 
                 //ABILITY SELECT
-                case 1:
+                case 2:
 
                     //Check the ability currently hovered isnt the last in the array
                     if (powerupSelected < 3)
@@ -486,7 +515,7 @@
             switch (state)
             {
                 //Ability select
-                case 1:
+                case 2:
                     //Inform screen of input
                     airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "back" });
                     //Decrease state and show Character Select screen
@@ -494,7 +523,7 @@
                     vm.show('menu_char');
                     break;
                 //Ready Screen
-                case 2:
+                case 3:
                     //Inform screen of input
                     airconsole.message(AirConsole.SCREEN, { title: "menu_button", button: "back" });
                     //Decrease state and show Ability Select screen
@@ -794,6 +823,12 @@
     <div id="loading" class="view default-view">
         <div id="loadpad" class=button>
             <div id="load" class="load_image"></div>
+        </div>
+    </div>
+
+    <div id="tutorial" class="view">
+        <div class="button">
+            <div id="tutorial_continue" class="button_select"></div>
         </div>
     </div>
 

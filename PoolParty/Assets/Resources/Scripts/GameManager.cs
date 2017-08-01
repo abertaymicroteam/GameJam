@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 public class GameManager : MonoBehaviour 
 {
 	// Game State
-	public enum STATE { MENU, GAME, RESTART, READY };
+	public enum STATE { TUTORIAL, MENU, GAME, RESTART, READY };
 	public STATE GameState;
 
 	// Scripts
@@ -73,7 +73,7 @@ public class GameManager : MonoBehaviour
 	void Start()
 	{
 		// Set initial game state
-		GameState = STATE.MENU;
+		GameState = STATE.TUTORIAL;
 
 		// Get Menu
 		menu =  GameObject.FindGameObjectWithTag("Menu").GetComponent<MenuScript>();
@@ -100,7 +100,7 @@ public class GameManager : MonoBehaviour
 	{
 		if (connectedPlayers < 8) 
 		{
-			if (GameState == STATE.MENU || GameState == STATE.READY)
+			if (GameState == STATE.TUTORIAL || GameState == STATE.MENU || GameState == STATE.READY)
 			{
 				// Assign character
 				//int character = RandomCharacter();
@@ -125,7 +125,7 @@ public class GameManager : MonoBehaviour
 
                 StartCoroutine(ConnectMessage(device_id, connectedPlayers));
 				AirConsole.instance.SetActivePlayers (8);
-				Debug.Log ("Player " + GetPlayerNumberWithDeviceId(device_id) + " connected");
+				Debug.Log ("Player " + GetPlayerNumberWithDeviceId(device_id) + " connected. ID: "+ device_id);
 
 				// Play connect sound
 				audioMan.PlayDrop ();
@@ -214,6 +214,7 @@ public class GameManager : MonoBehaviour
 			{
 				menu.ShowMenu ();
 				GameState = STATE.MENU;
+
             }
 		}
 	}
@@ -226,14 +227,33 @@ public class GameManager : MonoBehaviour
     void OnMessage(int device_id, JToken data)
 	{
 		Debug.Log ("Player number is " + GetPlayerNumberWithDeviceId(device_id));
-
-		if (tutorial) 
+        Debug.Log(data);
+		if (GameState == STATE.TUTORIAL) 
 		{
-			cameraScript.MoveCamera (new Vector3 (0.0f, 0.0f, -10.0f), 0.75f);
-			ReadyToPlay ();
-			MessageAll ();
-			firstConnect = false;
-			tutorial = false;
+            Debug.Log("tutorial message received");
+            if (data["title"] != null)
+            {
+                Debug.Log("title");
+                if (data["title"].ToString() == "receivedChar")
+                {
+                    Debug.Log("receivedChar");
+                    PlayerScripts[GetPlayerNumberWithDeviceId(device_id)].recievedMessage = true;
+                }
+            }
+            if (data["button"] != null)
+            {
+                Debug.Log("button");
+                if (data["button"].ToString() == "continue")
+                {
+                    Debug.Log("continue");
+                    cameraScript.MoveCamera(new Vector3(0.0f, 0.0f, -10.0f), 0.75f);
+                    ReadyToPlay();
+                    MessageAll();
+                    firstConnect = false;
+                    tutorial = false;
+                    GameState = STATE.MENU;
+                }
+            }
 		}
 
         if (GameState == STATE.RESTART)
@@ -250,14 +270,29 @@ public class GameManager : MonoBehaviour
 
             if (data["title"] != null)
             {
-                if (data["title"].ToString() == "recievedChar")
-                {
-					PlayerScripts[GetPlayerNumberWithDeviceId(device_id)].recievedMessage = true;
-                }
+     //           if (data["title"].ToString() == "recievedChar")
+     //           {
+					//PlayerScripts[GetPlayerNumberWithDeviceId(device_id)].recievedMessage = true;
+     //           }
 
                 if (data["title"].ToString() == "recievedPlay")
                 {
                     recievedPlay = true;
+                }
+            }
+
+            if (tutorial)
+            {
+                if (data["button"] != null)
+                {
+                    if (data["button"].ToString() == "continue")
+                    {
+                        cameraScript.MoveCamera(new Vector3(0.0f, 0.0f, -10.0f), 0.75f);
+                        ReadyToPlay();
+                        MessageAll();
+                        firstConnect = false;
+                        tutorial = false;
+                    }
                 }
             }
 
@@ -448,6 +483,7 @@ public class GameManager : MonoBehaviour
                 	    if (data["button"].ToString() == "back")
                 	    {
                 	        //menu.UpdateAbilityGraphic (hoveredPow [0], it);
+                            
 							PlayerScripts[id].controllerState = PlayerScript.ControllerState.Power;
 							PlayerScripts[id].ready = false;
                 	    }
@@ -670,7 +706,7 @@ public class GameManager : MonoBehaviour
 					}
 
                     //show ad if eonugh time has pssed
-                    AirConsole.instance.ShowAd();
+                    //AirConsole.instance.ShowAd();
 
 					if (restartTap) 
 					{
@@ -736,7 +772,7 @@ public class GameManager : MonoBehaviour
 					}
 
                     //if enough time has passed play ad
-                    AirConsole.instance.ShowAd();
+                    //AirConsole.instance.ShowAd();
 
 					if (restartTap) {
 						// Reset bools
@@ -1010,20 +1046,19 @@ public class GameManager : MonoBehaviour
             {
                 // Send connection message to controller
                 JObject connectionMessage = new JObject();
-                connectionMessage.Add("state", 0);
                 connectionMessage.Add("angle", 0);
-                if (AirConsole.instance.GetControllerDeviceIds().Count > 1)
-                {
-                    connectionMessage.Add("charNo", PlayerScripts[ID - 1].hoveredChar + 1);
-                }
+                connectionMessage.Add("connect", 10);
                 AirConsole.instance.Message(device_id, connectionMessage);
                 timer = 0;
+                Debug.Log(connectionMessage + " " + device_id + " " + ID);
             }
             yield return null;
         }
 
 		Debug.Log("Stopped sending character");    
     }
+
+
 
     private IEnumerator SendPlayButton()
     {
@@ -1124,14 +1159,20 @@ public class GameManager : MonoBehaviour
 		foreach (GameObject i in Players) 
 		{
 			//add state
+            //if(GameState == STATE.TUTORIAL)
+            //{
+                statemsg.Add("tutorial",0);
+            //}
 			statemsg.Add("state", (int)GameState);
 			statemsg.Add ("charNo", charNums[iteratorl] + 1);
 			//send message to the player
 			AirConsole.instance.Message (PlayerScripts [iteratorl].deviceID, statemsg);		//send message
-			debugMessage(statemsg, PlayerScripts[iteratorl].deviceID);					//debug						
-			statemsg.ClearItems();	
+			debugMessage(statemsg, PlayerScripts[iteratorl].deviceID);                  //debug					
+            Debug.Log(statemsg+""+ PlayerScripts[iteratorl].deviceID);    
+            statemsg.ClearItems();	
 			//increase iterator
 			iteratorl++;
+           
 		}
 
 	}

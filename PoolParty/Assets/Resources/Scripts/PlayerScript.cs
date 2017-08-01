@@ -278,7 +278,6 @@ public class PlayerScript : MonoBehaviour {
 
     private void CheckBrakes()
     {
-        Debug.Log("function entered");
         if (runHoldtimer)
         {
             holdtimer += Time.deltaTime;
